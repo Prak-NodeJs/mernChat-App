@@ -26,13 +26,15 @@ app.use('/api/message', messageRoutes)
 // ----------------deployment---------------------
 
 if(process.env.NODE_ENV==='production'){
-const __dirname1= path.resolve();
+    const rootDirectory = path.resolve(__dirname, '..', 'frontend', 'dist');
 
-    app.use(express.static(path.join(__dirname1,"/frontend/dist")))
+    // Serve static files from the root directory
+    app.use(express.static(rootDirectory));
 
-    app.get("*", (req, res)=>{
-        res.sendFile(path.resolve(__dirname1,"dist","index.html"))
-    })
+    // Serve index.html for all routes
+    app.get('*', (req, res) => {
+        res.sendFile(path.resolve(rootDirectory, 'index.html'));
+    });
 
 }else{
      app.get('/', (req, res)=>{
