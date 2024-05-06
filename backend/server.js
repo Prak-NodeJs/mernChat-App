@@ -3,6 +3,7 @@ const app = express();
 const dotenv = require('dotenv')
 
 dotenv.config({})
+const path = require('path')
 const cors = require('cors');
 const connectDB = require('./config/db');
 const userRoutes = require('./routes/userRoutes');
@@ -21,6 +22,24 @@ app.use('/api/user', userRoutes)
 app.use('/api/chat', chatRoutes)
 app.use('/api/message', messageRoutes)
 
+
+// ----------------deployment---------------------
+
+const __dirname1= path.resolve();
+if(process.env.NODE_ENV==='production'){
+    app.use(express.static(path.join(__dirname1,"/frontend/dist")))
+
+    app.get("*", (req, res)=>{
+        res.sendFile(path.resolve(__dirname1,"dist","index.html"))
+    })
+
+}else{
+     app.get('/', (req, res)=>{
+        res.send("Api is running")
+     })
+}
+
+// ---------------deployment-------------------------
 
 app.use(notFound)
 app.use((err, req, res, next) => {
