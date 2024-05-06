@@ -9,6 +9,8 @@ const connectDB = require('./config/db');
 const userRoutes = require('./routes/userRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const messageRoutes = require('./routes/messageRoutes')
+const replyRoutes = require('./routes/replyRoutes')
+
 
 const { notFound} =  require('./middleware/ApiError')
 
@@ -21,26 +23,24 @@ app.use(express.json())
 app.use('/api/user', userRoutes)
 app.use('/api/chat', chatRoutes)
 app.use('/api/message', messageRoutes)
+app.use('/api/reply', replyRoutes)
+
 
 
 // ----------------deployment---------------------
 
-if(process.env.NODE_ENV==='production'){
-    const rootDirectory = path.resolve(__dirname, '..', 'frontend', 'dist');
+// if(process.env.NODE_ENV==='production'){
+//     const rootDirectory = path.resolve(__dirname, '..', 'frontend', 'dist');
 
-    // Serve static files from the root directory
-    app.use(express.static(rootDirectory));
+//     // Serve static files from the root directory
+//     app.use(express.static(rootDirectory));
 
-    // Serve index.html for all routes
-    app.get('*', (req, res) => {
-        res.sendFile(path.resolve(rootDirectory, 'index.html'));
-    });
+//     // Serve index.html for all routes
+//     app.get('*', (req, res) => {
+//         res.sendFile(path.resolve(rootDirectory, 'index.html'));
+//     });
 
-}else{
-     app.get('/', (req, res)=>{
-        res.send("Api is running")
-     })
-}
+// }
 
 // ---------------deployment-------------------------
 

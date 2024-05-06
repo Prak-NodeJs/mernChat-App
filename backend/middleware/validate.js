@@ -2,7 +2,6 @@ const _ = require('lodash');
 const { ApiError } = require('./ApiError');
 
 const validate = (schema) => (req, res, next) => {
-  console.log(schema);
   validateRequestData(req.body, schema.body, next);
   validateRequestData(req.params, schema.params, next);
   validateRequestData(req.query, schema.query, next);

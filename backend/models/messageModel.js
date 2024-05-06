@@ -6,6 +6,7 @@ const messageSchema = mongoose.Schema(
     sender: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     content: { type: String, trim: true },
     file:{type:String, trim:true},
+    replies: [{ type: mongoose.Schema.Types.ObjectId, ref: "Reply" }],
     time: {
       type: String,
       trim: true,
@@ -15,14 +16,8 @@ const messageSchema = mongoose.Schema(
         // Extract hours and minutes
         const hours = currentDate.getHours();
         const minutes = currentDate.getMinutes();
-
-        // Convert hours to 12-hour format
         const formattedHours = hours % 12 === 0 ? 12 : hours % 12;
-
-        // Determine AM/PM
         const meridiem = hours >= 12 ? 'PM' : 'AM';
-
-        // Construct the time string with leading zeros
         const formattedTime = `${formattedHours.toString().padStart(2, '0')}:${minutes
           .toString()
           .padStart(2, '0')} ${meridiem}`;
