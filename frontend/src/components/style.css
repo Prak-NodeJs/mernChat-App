@@ -1,0 +1,14 @@
+.messages {
+    display: flex;
+    flex-direction: column;
+    overflow-y: scroll;
+    scrollbar-width: none;
+  }
+
+.no_message{
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ margin-bottom: 250px;
+ font-size:20px;
+}
