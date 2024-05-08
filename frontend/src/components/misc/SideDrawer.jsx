@@ -4,15 +4,16 @@ import {Tooltip, Menu, MenuButton, MenuItem, MenuList, MenuDivider, Drawer,
   DrawerHeader,
   DrawerOverlay,
   DrawerContent,
+  useDisclosure
 } from '@chakra-ui/react'
 import { Spinner } from '@chakra-ui/spinner'
 import {Button} from '@chakra-ui/button'
-import { Input, InputGroup, InputRightElement } from '@chakra-ui/input'
+import { Input} from '@chakra-ui/input'
 import axios from "axios";
 
 import { BellIcon,ChevronDownIcon } from "@chakra-ui/icons"
-import { Flex, Spacer } from '@chakra-ui/react'
-import { Avatar, AvatarBadge, AvatarGroup,  useDisclosure,
+import { Flex } from '@chakra-ui/react'
+import { Avatar
  } from '@chakra-ui/react'
 import { ChatState } from '../../Context/ChatProvider';
 
@@ -127,7 +128,7 @@ const accessChat = async(userId)=>{
           </Button>
         </Tooltip>
         <Text fontSize={"2xl"} >
-              Talk 
+              SmartConnect
         </Text>
       <div>
          <Menu>

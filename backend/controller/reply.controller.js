@@ -1,5 +1,6 @@
 const Reply = require('../models/replyModel')
 const Message = require('../models/messageModel')
+const User = require('../models/userModel')
 const {ApiError} = require('../middleware/ApiError')
 
 const replyToMessage = async(req, res, next)=>{
@@ -7,7 +8,7 @@ const replyToMessage = async(req, res, next)=>{
         const {content,file } = req.body;
         const {messageId} = req.params;
 
-        const message= await Message.findOne({_id:messageId})
+        var message= await Message.findOne({_id:messageId})
         if(!message){
             throw new ApiError(404, 'Message not found');
         }
@@ -22,10 +23,19 @@ const replyToMessage = async(req, res, next)=>{
         const result = await Reply.create(replyData);
         message.replies.push(result._id)
         message.save()
+
+    message = await message.populate("sender", "name pic")
+    message = await message.populate('replies')
+    message = await message.populate("chat")
+    message = await User.populate(message, {
+      path: "chat.users",
+      select: "name pic email",
+    });
+
         res.status(200).json({
             success:true,
             message:"reply added",
-            data:result
+            data:message
         })
     } catch (error) {
         next(error)

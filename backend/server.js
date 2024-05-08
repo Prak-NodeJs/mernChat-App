@@ -85,6 +85,7 @@ io.on('connection', (socket)=>{
 
 
     socket.on('new message', (newMessageRecieved)=>{
+          console.log("new mesage",newMessageRecieved)
         var chat = newMessageRecieved.chat;
         if(!chat.users) return console.log('chat.users not defined');
 
@@ -92,6 +93,20 @@ io.on('connection', (socket)=>{
             if(user._id==newMessageRecieved.sender._id) return;
 
             socket.in(user._id).emit('message recieved', newMessageRecieved)
+        })
+    })
+
+    socket.on('reply message', (replyMessageRecieved)=>{
+        var chat = replyMessageRecieved.chat;
+        console.log("this is reply message",replyMessageRecieved)
+        console.log("reply messaged recived")
+
+        if(!chat.users) return console.log('chat.users not defined');
+        console.log(chat.users)
+        chat.users.forEach((user)=>{
+            if(user._id!=replyMessageRecieved.sender._id) return;
+
+            socket.in(user._id).emit('message recieved', replyMessageRecieved)
         })
     })
 

@@ -33,6 +33,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     const [isTyping, setIsTyping] = useState(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [selectedFileName, setSelectedFileName] = useState('');
+    const [replying, setReplying] = useState(null)
+    const [hideSend,setHideSend] = useState(false)
 
     const toast = useToast()
 
@@ -49,7 +51,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             preserveAspectRatio: "xMidYMid slice",
         },
     };
-
 
     const fetchMessages = async () => {
         if (!selectedChat) return;
@@ -92,20 +93,21 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 setNewMessage("")
                 const { data } = await axios.post("http://localhost:5000/api/message", {
                     content: newMessage,
-                    file:file?file:null,
+                    file: file ? file : null,
                     chatId: selectedChat._id
                 }, config)
+                console.log("messages length before sending simple", messages.length)
 
                 socket.emit('new message', data.data)
                 setMessages([...messages, data.data])
+                console.log("messages length after sending sending simple", messages.length)
+
                 setFile('')
                 setSelectedFileName('')
             } catch (error) {
-                console.log(error)
                 toast({
                     title: "Error Occured!",
                     description: error.response.data.message,
-
                     status: "error",
                     duration: 5000,
                     isClosable: true,
@@ -115,13 +117,55 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         }
     }
 
+    const sendReply = async (event)=>{
+        console.log("hello reply object",replying)
+        if (event.key == "Enter" && newMessage) {
+            socket.emit("stop typing", selectedChat._id)
+
+            try {
+                const config = {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${user.token}`
+                    }
+                }
+                const {data} = await axios.post(`http://localhost:5000/api/reply/message/${replying._id}`, {
+                    content: newMessage,
+                    file: file ? file : null
+                }, config)
+
+                socket.emit('reply message', data.data)
+                console.log("messages length before sending", messages.length)
+                console.log("reply message emitted")
+                setMessages(prev=>[...prev, data.data]);
+                console.log("messages length after sending", messages.length)
+
+                setFile('')
+                setSelectedFileName('')
+                setHideSend(false)
+                setReplying(null)
+                setNewMessage('')
+            } catch (error) {
+                console.log(error)
+                toast({
+                    title: "Error Occured!",
+                    description: error.response.data.message,
+                    status: "error",
+                    duration: 5000,
+                    isClosable: true,
+                    position: "bottom",
+                });
+            }
+        }
+    }
+
+
     useEffect(() => {
         socket = io(ENDPOINT);
         socket.emit('setup', user);
         socket.on('connected', () => {
             setSocketConnected(true)
         })
-
         socket.on("typing", () => setIsTyping(true));
         socket.on("stop typing", () => setIsTyping(false));
     }, [])
@@ -134,6 +178,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
     useEffect(() => {
         socket.on('message recieved', (newMessageRecieved) => {
+            console.log("messages length before reciveing simple", messages.length)
+
             if (!selectedChatCompare ||
                 selectedChatCompare._id !== newMessageRecieved.chat._id) {
                 //give notification
@@ -144,8 +190,32 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
             } else {
                 setMessages([...messages, newMessageRecieved])
+                console.log("messages length before reciveing simple", messages.length)
+
             }
         })
+    })
+
+    useEffect(()=>{
+        socket.on('reply message recieved', (replyMessageRecieved)=>{
+            console.log("messages length before reciveing reply", messages.length)
+
+                if (!selectedChatCompare ||
+                    selectedChatCompare._id !== replyMessageRecieved.chat._id) {
+                    //give notification
+                    if (!notification.includes(replyMessageRecieved)) {
+                        setNotification([replyMessageRecieved, ...notification])
+                        setFetchAgain(!fetchAgain)
+                    }
+    
+                } else {
+                    console.log(messages.length)
+                    setMessages([...messages, replyMessageRecieved])
+                    // setFetchAgain(fetchAgain)
+                    console.log("messages length before reciveing reply", messages.length)
+
+                }
+            })
     })
 
     const handleEmojiClick = (event, emojiData) => {
@@ -178,7 +248,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 .then((res) => res.json())
                 .then((data) => {
                     setFile(data.url.toString());
-                    setSelectedFileName(pics.name)                 
+                    setSelectedFileName(pics.name)
                     console.log(data.url.toString());
                 })
                 .catch((err) => {
@@ -271,14 +341,14 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     </Spinner>)
 
                         : (<div className='messages'>
-                            <ScrollableChat messages={messages} />
+                            <ScrollableChat messages={messages} setReplying={setReplying} setHideSend={setHideSend}/>
                         </div>)}
 
+                    { (hideSend == false && replying==null) && (
                     <FormControl onKeyDown={sendMessage}>
                         {isTyping ? <div>
                             <Lottie
                                 options={defaultOptions}
-                                // height={50}
                                 width={70}
                                 style={{ marginBottom: 15, marginLeft: 0 }}
                             />
@@ -298,16 +368,55 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                                 </IconButton>
                             </label>
                             {selectedFileName && (
-                <Text fontSize="sm" ml={2} alignSelf="center">
-                    {selectedFileName}
-                </Text>
-            )}
+                                <Text fontSize="sm" ml={2} alignSelf="center">
+                                    {selectedFileName}
+                                </Text>
+                            )}
                             <input id="file-upload" type="file" style={{ display: "none" }} onChange={handleFileSelect} />                        <Button bgColor={"#E8E8E8"} onClick={() => setShowEmojiPicker(!showEmojiPicker)}>😃️</Button>
                         </Flex>
                         {
                             showEmojiPicker && <EmojiPicker onEmojiClick={handleEmojiClick} height={250} searchDisabled={true} previewConfig={emojiConfig}></EmojiPicker>
                         }
-                    </FormControl>
+                    </FormControl>)}
+
+                    {/* //show reply input */}
+
+                    { (hideSend == true && replying!=null) && (
+                    <FormControl onKeyDown={sendReply}>
+                        {isTyping ? <div>
+                            <Lottie
+                                options={defaultOptions}
+                                width={70}
+                                style={{ marginBottom: 15, marginLeft: 0 }}
+                            />
+                        </div> : <></>}
+
+                        <Flex d={"flex"}>
+                            <p>replying to {replying.sender.name}</p>
+                            <Input
+                                variant={"filled"}
+                                bg="#E0E0E0"
+                                placeholder='Enter a message'
+                                onChange={typingHanlder}
+                                value={newMessage}
+                            />
+                            <label htmlFor="file-upload">
+                                <IconButton as="span" bgColor="#E8E8E8" >
+                                    <AttachmentIcon />
+                                </IconButton>
+                            </label>
+                            {selectedFileName && (
+                                <Text fontSize="sm" ml={2} alignSelf="center">
+                                    {selectedFileName}
+                                </Text>
+                            )}
+                            <input id="file-upload" type="file" style={{ display: "none" }} onChange={handleFileSelect} />                        <Button bgColor={"#E8E8E8"} onClick={() => setShowEmojiPicker(!showEmojiPicker)}>😃️</Button>
+                        </Flex>
+                        {
+                            showEmojiPicker && <EmojiPicker onEmojiClick={handleEmojiClick} height={250} searchDisabled={true} previewConfig={emojiConfig}></EmojiPicker>
+                        }
+                    </FormControl>)}
+
                 </Flex>
             </>
             ) : (

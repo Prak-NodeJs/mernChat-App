@@ -55,6 +55,7 @@ const registerUser =async (req, res, next) => {
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
+      token: generateToken(user._id),
       pic: user.pic
     }
       res.status(201).json({
