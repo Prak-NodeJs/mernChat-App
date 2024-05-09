@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect} from 'react'
 import axios from 'axios'
 import {
     Modal,
@@ -14,6 +14,9 @@ import {
     FormControl, Input, Flex
 
 } from '@chakra-ui/react'
+import io from 'socket.io-client'
+const ENDPOINT = "http://localhost:5000"
+var socket;
 
 import { ChatState } from '../../Context/ChatProvider'
 import UserListItem from '../User/UserListItem'
@@ -33,6 +36,15 @@ const GroupChatMadel = ({ children }) => {
 
     const { user, chats, setChats } = ChatState()
 
+    useEffect(() => {
+        socket = io(ENDPOINT);
+    }, [])
+
+    useEffect(()=>{
+    socket.on('user_added_to_group', (userId)=>{
+      console.log("this user is removed from the group", userId)
+    })
+    })
 
     const validateForm = () => {
         const errors = {};
@@ -84,9 +96,7 @@ const GroupChatMadel = ({ children }) => {
 
     const handleSubmit = async () => {
       if(validateForm()){
-        console.log(selectedUsers.length)
         if(selectedUsers.length<2){
-            console.log("hello")
             toast({
                 title: "Error Occured!",
                 description: "Add atleast two user to create group",
@@ -108,8 +118,8 @@ const GroupChatMadel = ({ children }) => {
           chatName:groupChatName,
           users:selectedUsers.map((u)=>u._id)
           },config);
-
           setChats([data.data, ...chats])
+          socket.emit('add_user_to_group', (selectedUsers))
           onClose();
           toast({
             title: "Group Chat Created",

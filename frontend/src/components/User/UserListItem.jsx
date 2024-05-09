@@ -29,10 +29,10 @@ const UserListItem = ({user, handlerFunction}) => {
           />
           <Flex>
             <Text>{user.name}</Text>
-            <Text fontSize="xs">
+            {/* <Text fontSize="xs">
               <b>Email : </b>
               {user.email}
-            </Text>
+            </Text> */}
           </Flex>
         </Flex>
       );

@@ -85,7 +85,6 @@ io.on('connection', (socket)=>{
 
 
     socket.on('new message', (newMessageRecieved)=>{
-          console.log("new mesage",newMessageRecieved)
         var chat = newMessageRecieved.chat;
         if(!chat.users) return console.log('chat.users not defined');
 
@@ -109,6 +108,14 @@ io.on('connection', (socket)=>{
             socket.in(user._id).emit('reply message recieved', replyMessageRecieved)
         })
     })
+
+    socket.on('add_user_to_group', (selectedUsers)=>{
+           console.log("these users are added",selectedUsers)
+           selectedUsers.map((u)=>{
+             server.in(u._id).emit('user_added_to_group', u._id)
+           })
+    })
+
 
     socket.off("setup", ()=>{
         console.log('user disconnected');

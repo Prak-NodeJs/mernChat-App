@@ -6,7 +6,7 @@ const {ApiError}= require('../middleware/ApiError')
 const sendMessage=  async(req, res, next)=>{
   try {
     const {content, chatId, file} = req.body
-    if (!content || !chatId) {
+    if ( !chatId) {
       throw new ApiError(400,'Please provide required data')
    }
     
