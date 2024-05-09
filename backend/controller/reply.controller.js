@@ -15,7 +15,8 @@ const replyToMessage = async(req, res, next)=>{
 
         const replyData = {
             content,
-            sender:req.user._id
+            sender:req.user._id,
+            name:req.user.name
         }
         if(file){
             replyData.file = file
@@ -27,11 +28,11 @@ const replyToMessage = async(req, res, next)=>{
     message = await message.populate("sender", "name pic")
     message = await message.populate('replies')
     message = await message.populate("chat")
+
     message = await User.populate(message, {
       path: "chat.users",
       select: "name pic email",
     });
-
         res.status(200).json({
             success:true,
             message:"reply added",

@@ -100,7 +100,6 @@ const accessChat = async(userId)=>{
     toast({
       title: "Error Occured!",
       description:error.response.data.message,
-
       status: "error",
       duration: 5000,
       isClosable: true,

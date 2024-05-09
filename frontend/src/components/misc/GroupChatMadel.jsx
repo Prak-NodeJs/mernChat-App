@@ -27,10 +27,31 @@ const GroupChatMadel = ({ children }) => {
     const [search, setSearch] = useState('');
     const [searchResult, setSearchResult] = useState([]);
     const [loading, setLoading] = useState(false)
+    const [errors, setErrors] = useState({});
 
     const toast = useToast();
 
     const { user, chats, setChats } = ChatState()
+
+
+    const validateForm = () => {
+        const errors = {};
+        let isValid = true;
+
+        if (!groupChatName.trim()) {
+            errors.groupChatName = 'Group ChatName is required';
+            isValid = false;
+        } 
+        setErrors(errors);
+        return isValid;
+    };
+
+    const handleGroupChatNameChange = (e) => {
+        setGroupChatName(e.target.value);
+        if (errors.groupChatName) {
+            setErrors((prevErrors) => ({ ...prevErrors, groupChatName: '' }));
+        }
+    };
 
     const handleSearch = async (query) => {
         setSearch(query)
@@ -62,17 +83,20 @@ const GroupChatMadel = ({ children }) => {
     }
 
     const handleSubmit = async () => {
-       if(!groupChatName || !selectedUsers){
-        toast({
-            title: "Please provide all the details",
-            status: "warning",
-            duration: 5000,
-            isClosable: true,
-            position: "top",
-          });
-          return;
-       }
-
+      if(validateForm()){
+        console.log(selectedUsers.length)
+        if(selectedUsers.length<2){
+            console.log("hello")
+            toast({
+                title: "Error Occured!",
+                description: "Add atleast two user to create group",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+                position: "bottom",
+              });
+              return
+        }
        try {
         const config = {
             headers: {
@@ -107,6 +131,7 @@ const GroupChatMadel = ({ children }) => {
           });
        }
     }
+    }
 
     const handleDelete = (delUser) => {
         setSelectedUsers(selectedUsers.filter((sel) => sel._id !== delUser._id));
@@ -123,7 +148,6 @@ const GroupChatMadel = ({ children }) => {
           });
           return;
         }
-    
         setSelectedUsers([...selectedUsers, userToAdd]);
       };
     
@@ -145,7 +169,8 @@ const GroupChatMadel = ({ children }) => {
                     <ModalBody d="flex" flexDir={"column"} alignItems={"center"}>
 
                         <FormControl>
-                            <Input placeholder='Chat Name' mb={3} onChange={(e) => setGroupChatName(e.target.value)} />
+                            <Input placeholder='Chat Name' mb={3} onChange={handleGroupChatNameChange} />
+                            {errors.groupChatName && <span style={{color:"red"}} className='error'>{errors.groupChatName}</span>}
                         </FormControl>
 
                         <FormControl>

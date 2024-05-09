@@ -6,6 +6,7 @@ const createUser = {
         name: Joi.string().required(),
         email: Joi.string().required().email(),
         password:Joi.string().required(),
+        file:Joi.string()
       }) 
   };
 

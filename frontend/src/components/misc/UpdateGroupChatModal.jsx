@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect} from 'react'
 import {
     Modal,
     ModalOverlay,
@@ -13,7 +13,8 @@ import {
     Flex,
     FormControl,
     Input,
-    useToast
+    useToast,
+    Text,
   } from '@chakra-ui/react'
 import { ViewIcon } from '@chakra-ui/icons'
 import { ChatState } from '../../Context/ChatProvider'
@@ -21,16 +22,48 @@ import UserBadgeItem from '../User/UserBadgeItem'
 import axios from 'axios'
 import UserListItem from '../User/UserListItem'
 import { Spinner } from '@chakra-ui/spinner'
+import io from 'socket.io-client';
+
+
+const ENDPOINT = "http://localhost:5000"; 
+
 
 const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
      const {selectedChat, setSelectedChat,user} = ChatState()
     const { isOpen, onOpen, onClose } = useDisclosure()
      const toast = useToast()
-    const [groupChatName, setGroupChatName] = useState()
+    const [groupChatName, setGroupChatName] = useState('')
     const [search, setSearch] = useState('')
     const [searchResult, setSearchResult] = useState([])
     const [loading, setLoading] = useState(false)
     const [renameLoading, setRenameLoading] = useState(false)
+    const [errors, setErrors] = useState({});
+
+    const validateForm = () => {
+      const errors = {};
+      let isValid = true;
+
+      if (!groupChatName.trim()) {
+          errors.groupChatName = 'Group ChatName is required';
+          isValid = false;
+      } 
+      setErrors(errors);
+      return isValid;
+  };
+
+
+
+
+  useEffect(()=>{
+    
+  })
+
+  const handleGroupChatNameChange = (e) => {
+    setGroupChatName(e.target.value);
+    if (errors.groupChatName) {
+        setErrors((prevErrors) => ({ ...prevErrors, groupChatName: '' }));
+    }
+};
 
     const handleRemove = async (user1)=>{
         if (selectedChat.groupAdmin._id !== user._id && user1._id !== user._id) {
@@ -73,12 +106,10 @@ const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
               position: "bottom",
             });
             setLoading(false);
-          }
-          setGroupChatName("");
-      
+          }      
     }
     const handleRename = async ()=>{
-       if(!groupChatName) return 
+       if(validateForm()) {
        try {
         setRenameLoading(true)
          const config = {
@@ -109,6 +140,7 @@ const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
        }
        
        setGroupChatName('')
+      }
     }
 
     const handleSearch = async (query)=>{
@@ -197,56 +229,77 @@ const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
     }
 
     return (
-        <>
-          <IconButton d={{base:"flex"}} icon={<ViewIcon/>} onClick={onOpen}/>
-    
-          <Modal isOpen={isOpen} onClose={onClose} isCentered>
-            <ModalOverlay />
-            <ModalContent>
-              <ModalHeader>{selectedChat.chatName}</ModalHeader>
-              <ModalCloseButton />
-              <ModalBody>
-
-                <Flex >
-                    {selectedChat.users.map(u=>(
-                      <UserBadgeItem key={u._id}
+      <>
+        <IconButton d={{ base: 'flex' }} icon={<ViewIcon />} onClick={onOpen} />
+  
+        <Modal isOpen={isOpen} onClose={onClose} isCentered>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>{selectedChat.chatName}</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Flex direction="column" mb={4}>
+                <Text fontWeight="bold" mb={2}>
+                  Current Members
+                </Text>
+                <Flex flexWrap="wrap">
+                  {selectedChat.users.map((u) => (
+                    <UserBadgeItem
+                      key={u._id}
                       user={u}
-                      handlerFunction={()=>handleRemove(u)}
-                      >
-                      </UserBadgeItem>  
-                    ))}
+                      handlerFunction={() => handleRemove(u)}
+                    />
+                  ))}
                 </Flex>
-                <FormControl>
-                <Input placeholder='Chat Name' mb={3} value={groupChatName} onChange={(e)=>setGroupChatName(e.target.value)}/>
-                <Button variant={"solid"} colorScheme='teal' ml={"1"} isLoading={renameLoading} onClick={handleRename}>
-                    Update
-                </Button>
-                </FormControl>
-                <FormControl>
-                <Input placeholder='Add User to group' mb={1} onChange={(e)=>handleSearch(e.target.value)}/>
-                </FormControl>
-                {loading ? (
-              <Spinner size="lg" />
-            ) : (
-              searchResult?.map((user) => (
-                <UserListItem
-                  key={user._id}
-                  user={user}
-                  handlerFunction={() => handleAddUser(user)}
+              </Flex>
+              <FormControl mb={4}>
+                <Input
+                  placeholder="Enter New Chat Name"
+                  value={groupChatName}
+                  onChange={handleGroupChatNameChange}
                 />
-              ))
-            )}
-              </ModalBody>
-                  
-              <ModalFooter>
-                <Button onClick={()=>handleRemove(user)} colorScheme='red'>
-                  Leave Group
+                {errors.groupChatName && (
+                  <Text mt={1} color="red.500">
+                    {errors.groupChatName}
+                  </Text>
+                )}
+                <Button
+                  colorScheme="teal"
+                  mt={2}
+                  isLoading={renameLoading}
+                  onClick={handleRename}
+                >
+                  Rename Group
                 </Button>
-              </ModalFooter>
-            </ModalContent>
-          </Modal>
-        </>
-      )
-    }
-
-export default UpdateGroupChatModal
+              </FormControl>
+              <FormControl mb={4}>
+                <Input
+                  placeholder="Search Users"
+                  onChange={(e) => handleSearch(e.target.value)}
+                />
+              </FormControl>
+              {loading ? (
+                <Spinner size="lg" />
+              ) : (
+                searchResult?.map((user) => (
+                  <UserListItem
+                    key={user._id}
+                    user={user}
+                    handlerFunction={() => handleAddUser(user)}
+                  />
+                ))
+              )}
+            </ModalBody>
+  
+            <ModalFooter>
+              <Button colorScheme="red" onClick={() => handleRemove(user)}>
+                Leave Group
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      </>
+    );
+  };
+  
+  export default UpdateGroupChatModal;

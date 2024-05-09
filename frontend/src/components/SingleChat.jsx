@@ -133,11 +133,24 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     content: newMessage,
                     file: file ? file : null
                 }, config)
-
+                
+                const messageIndex = messages.findIndex(
+                    (msg) => msg._id === data.data._id
+                );
+    
+                if (messageIndex !== -1) {
+                    // If the message exists, replace it with the replied message data
+                    const updatedMessages = [...messages];
+                    updatedMessages[messageIndex] = data.data;
+                    setMessages(updatedMessages);
+                }
+                
                 socket.emit('reply message', data.data)
                 console.log("messages length before sending", messages.length)
                 console.log("reply message emitted")
-                setMessages(prev=>[...prev, data.data]);
+                // setMessages("this is messages", messages);
+                // fetchMessages()
+           
                 console.log("messages length after sending", messages.length)
 
                 setFile('')
@@ -210,8 +223,19 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     
                 } else {
                     console.log(messages.length)
-                    setMessages([...messages, replyMessageRecieved])
-                    // setFetchAgain(fetchAgain)
+                    const messageIndex = messages.findIndex(
+                        (msg) => msg._id === replyMessageRecieved._id
+                    );
+        
+                    if (messageIndex !== -1) {
+                        // If the message exists, replace it with the replied message data
+                        const updatedMessages = [...messages];
+                        updatedMessages[messageIndex] = replyMessageRecieved;
+                        setMessages(updatedMessages);
+                    }
+                    // fetchMessages()
+                    // setMessages([...messages, replyMessageRecieved])
+                    // sendMessage(messages)
                     console.log("messages length before reciveing reply", messages.length)
 
                 }
@@ -269,9 +293,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
     const typingHanlder = (e) => {
         setNewMessage(e.target.value);
-
-        //typing indicator logic
-
         if (!socketConnected) return;
 
         if (!typing) {
@@ -392,7 +413,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                         </div> : <></>}
 
                         <Flex d={"flex"}>
-                            <p>replying to {replying.sender.name}</p>
+                            <p>replying to {user.name === replying.sender.name? 'you' : replying.sender.name}</p>
+                            <p>{replying.content}</p>
                             <Input
                                 variant={"filled"}
                                 bg="#E0E0E0"

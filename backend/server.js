@@ -104,9 +104,9 @@ io.on('connection', (socket)=>{
         if(!chat.users) return console.log('chat.users not defined');
         console.log(chat.users)
         chat.users.forEach((user)=>{
-            if(user._id!=replyMessageRecieved.sender._id) return;
+            // if(user._id!=replyMessageRecieved.replies[0].sender) return;
 
-            socket.in(user._id).emit('message recieved', replyMessageRecieved)
+            socket.in(user._id).emit('reply message recieved', replyMessageRecieved)
         })
     })
 

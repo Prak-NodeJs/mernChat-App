@@ -1,8 +1,11 @@
+const { string } = require("joi");
 const mongoose = require("mongoose");
 
 const replySchema = mongoose.Schema(
   {
-    sender: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    sender: { type: mongoose.Schema.Types.ObjectId, ref: "User", required:true },
+    name: {type:String, trim:true ,required:true},
+
     content: { type: String, trim: true },
     file:{type:String, trim:true},
     time: {
