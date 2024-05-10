@@ -97,8 +97,6 @@ io.on('connection', (socket)=>{
 
     socket.on('reply message', (replyMessageRecieved)=>{
         var chat = replyMessageRecieved.chat;
-        console.log("this is reply message",replyMessageRecieved)
-        console.log("reply messaged recived")
 
         if(!chat.users) return console.log('chat.users not defined');
         console.log(chat.users)
@@ -110,14 +108,12 @@ io.on('connection', (socket)=>{
     })
 
     socket.on('add_user_to_group', (selectedUsers)=>{
-           console.log("these users are added 2",selectedUsers)
            selectedUsers.map((u)=>{
              socket.in(u._id).emit('user_added_to_group', u)
            })
     })
 
     socket.on('user_added', (selectedChat, user)=>{
-        console.log("this is used",selectedChat, user)
         selectedChat.users.map((u)=>{
             if(u._id==user._id)return
             console.log(u.name)
@@ -128,7 +124,6 @@ io.on('connection', (socket)=>{
     })
 
     socket.on('user_removed', (usersFromRemove,selectedChat, user)=>{
-        console.log("this is user removed",usersFromRemove, selectedChat, user)
         usersFromRemove.map((u)=>{
             // if(u._id==selectedChat.groupAdmin._id)return
             // console.log(u.name)
@@ -138,7 +133,6 @@ io.on('connection', (socket)=>{
 
 
     socket.on('user_deleted_group', (usersFromDelete, selectedChat, user)=>{
-           console.log("user_deleted grou..", usersFromDelete)
           usersFromDelete.map((u)=>{
             if(u._id==user._id)return
             socket.in(u._id).emit('user_deleted_group_received', selectedChat)
