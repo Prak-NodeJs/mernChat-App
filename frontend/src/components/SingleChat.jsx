@@ -326,12 +326,19 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         })
 
         socket.on('user_added_to_group', (selectedChat) => {
-            setFetchAgain(!fetchAgain)
+                            setFetchAgain(!fetchAgain)
         })
 
-        socket.on('added_user', (selectedChat) => {
-            setSelectedChat(selectedChat)
-            setFetchAgain(!fetchAgain)
+        socket.on('added_user', (selectedChat1) => {
+            // setSelectedChat(selectedChat)
+            // setFetchAgain(!fetchAgain)
+            if (!selectedChatCompare ||
+                selectedChatCompare._id !== selectedChat1._id) {
+                    console.log("this called dsff")
+                    setFetchAgain(!fetchAgain)
+            } else {
+                setSelectedChat(selectedChat)
+            }
         })
 
         socket.on('removed_user', (selectedChat, userRemoved) => {
@@ -346,8 +353,15 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         })
 
         socket.on('user_deleted_group_received', (selectedChat) => {
-            setSelectedChat(selectedChat)
-            setFetchAgain(!fetchAgain)
+            if (!selectedChatCompare ||
+                selectedChatCompare._id !== selectedChat._id) {
+                    console.log("this called dsff")
+                    setFetchAgain(!fetchAgain)
+            } else {
+                setSelectedChat(selectedChat)
+                setFetchAgain(!fetchAgain)
+
+            }
         })
 
         socket.on('group_renamed', (selectedChat) => {
