@@ -6,10 +6,7 @@ const {ApiError}= require('../middleware/ApiError')
 const sendMessage=  async(req, res, next)=>{
   try {
     const {content, chatId, file} = req.body
-    if ( !chatId) {
-      throw new ApiError(400,'Please provide required data')
-   }
-    
+   
    const isChatExist = await Chat.findOne({_id:chatId})
    if(!isChatExist){
     throw new ApiError(404, 'Chat not found')
@@ -49,6 +46,10 @@ const sendMessage=  async(req, res, next)=>{
 
 const allMessages= async(req, res, next)=>{
     try {
+      const isChatExist = await Chat.findOne({_id:req.params.chatId})
+      if(!isChatExist){
+       throw new ApiError(404, 'Chat not found')
+      }
         const messages = await Message.find({ chat: req.params.chatId })
           .populate("sender", "name pic email")
           .populate("replies")

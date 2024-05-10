@@ -83,9 +83,6 @@ const createGroupChat =async (req, res, next) => {
   try {
     const {users, chatName} = req.body;
 
-    if (!users || !chatName) {
-      throw new ApiError(400, 'Please fill all the details') 
-    }
     // const users = JSON.parse(req.body.users)
     
     if (users.length < 2) {
@@ -155,6 +152,26 @@ const renameGroupChat = async (req, res, next) => {
 const addToGroup = async (req, res, next) => {
   try {
     const { chatId, userId } = req.body;
+    const chat = await Chat.findOne({ _id: chatId, isGroupChat: true });
+    if(!chat){
+      throw new ApiError(404, 'Group Chat Id is not found')
+    }
+
+    if(chat.groupAdmin.toString()!=req.user._id.toString()){
+      throw new ApiError(400, 'Only group admin can add users')
+    }
+
+    const findUser = await User.findOne({_id:userId})
+
+    if(!findUser){
+      throw new ApiError(404, 'User not found')
+    }
+
+    const userExist = await Chat.findOne({ _id: chatId, users: userId });
+    if (userExist) {
+        throw new ApiError(400, "User already added");
+    }    
+
     const added = await Chat.findByIdAndUpdate(chatId, {
       $push: { users: userId }
     }, {
@@ -165,6 +182,7 @@ const addToGroup = async (req, res, next) => {
     if (!added) {
       throw new ApiError(404,'chat not found')
     }
+
     res.status(200).json({
       success:true,
       message:"Added to group",
@@ -179,6 +197,18 @@ const addToGroup = async (req, res, next) => {
 const removefromgroup =async (req, res, next) => {
   try {
     const { chatId, userId } = req.body;
+    const chat = await Chat.findOne({ _id: chatId, isGroupChat: true });
+    if(!chat){
+      throw new ApiError(404, 'Group Chat Id is not found')
+    }
+    if(chat.groupAdmin.toString()!==req.user._id.toString() && req.user._id.toString()!=userId.toString()){
+      throw new ApiError(400, 'Only group admin can remove users')
+    }
+    const findUser = await User.findOne({_id:userId})
+    if(!findUser){
+      throw new ApiError(404, 'User not found')
+    }
+
     const removed = await Chat.findByIdAndUpdate(chatId, {
       $pull: { users: userId }
     }, {
