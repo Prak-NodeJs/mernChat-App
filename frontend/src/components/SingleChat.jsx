@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { ChatState } from '../Context/ChatProvider'
-import { Flex, Text } from '@chakra-ui/layout'
+import { Flex, Text, Box } from '@chakra-ui/layout'
 import { FormControl, Input, Spinner, useToast, Button, IconButton } from '@chakra-ui/react'
 import { ArrowBackIcon } from '@chakra-ui/icons'
 import { getSender, getSenderFull } from '../config/ChatLogic'
@@ -14,6 +14,7 @@ import Lottie from "react-lottie";
 import EmojiPicker from 'emoji-picker-react';
 import { CloseIcon, AttachmentIcon } from '@chakra-ui/icons'
 import _ from 'lodash'
+import SendIcon from '@mui/icons-material/Send';
 // import CloseIcon from '@mui/icons-material/Close';
 
 
@@ -25,7 +26,7 @@ const ENDPOINT = "http://localhost:5000"
 var socket, selectedChatCompare;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
-    const { user, selectedChat, setSelectedChat, notification, setNotification} = ChatState()
+    const { user, selectedChat, setSelectedChat, notification, setNotification } = ChatState()
 
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false)
@@ -36,7 +37,9 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     const [isTyping, setIsTyping] = useState(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [selectedFileName, setSelectedFileName] = useState('');
-    const [replying, setReplying] = useState(null)
+    const [replying, setReplying] = useState(null);
+    const [editing, setEditeding] = useState(null)
+
     const [hideSend, setHideSend] = useState(false)
     const [fileLoading, setFileLoading] = useState(false)
 
@@ -84,8 +87,88 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         }
     }
 
+    const deleteMessage = async (m) => {
+        try {
+            if (user._id != m.sender._id) {
+                toast({
+                    title: "Error Occured",
+                    description: 'You can delete Only Your Messages',
+                    status: "error",
+                    duration: 5000,
+                    isClosable: true,
+                    position: "bottom",
+                });
+                return
+            }
+            const config = {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${user.token}`
+                }
+            }
+            setLoading(true)
+            await axios.delete(`http://localhost:5000/api/message/${m._id}`, config)
+            fetchMessages()
+            setLoading(false)
+            socket.emit('message_delete', selectedChat, m.sender._id)
+        } catch (error) {
+            toast({
+                title: "Error Occured!",
+                description: error.response.data.message,
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+                position: "bottom",
+            });
+            setLoading(false)
+        }
+    }
+
+    const editMessage = async () => {
+        try {
+            if (newMessage) {
+                if (user._id != editing.sender._id) {
+                    toast({
+                        title: "Error Occured",
+                        description: 'You can Edit Only Your Messages',
+                        status: "error",
+                        duration: 5000,
+                        isClosable: true,
+                        position: "bottom",
+                    });
+                    return
+                }
+                const config = {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${user.token}`
+                    }
+                }
+                setLoading(true)
+                await axios.put(`http://localhost:5000/api/message/${editing._id}`, {
+                    content: newMessage
+                }, config)
+                fetchMessages()
+                setLoading(false)
+                setNewMessage('')
+                setEditeding(null)
+                socket.emit('message_edit', selectedChat, editing.sender._id)
+            }
+        } catch (error) {
+            toast({
+                title: "Error Occured!",
+                description: error.response.data.message,
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+                position: "bottom",
+            });
+            setLoading(false)
+        }
+    }
+
     const sendMessage = async (event) => {
-        if (event.key == "Enter" && (newMessage || file)) {
+        if ( newMessage || file) {
             socket.emit("stop typing", selectedChat._id)
             try {
                 const config = {
@@ -125,7 +208,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     }
 
     const sendReply = async (event) => {
-        if (event.key == "Enter" && (newMessage || file)) {
+        if (newMessage || file) {
             socket.emit("stop typing", selectedChat._id)
 
             try {
@@ -180,7 +263,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             }
         }
     }
-
 
     useEffect(() => {
         socket = io(ENDPOINT);
@@ -242,43 +324,65 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
             }
         })
-      
-        socket.on('user_added_to_group', (selectedChat)=>{
-          setFetchAgain(!fetchAgain)
+
+        socket.on('user_added_to_group', (selectedChat) => {
+            setFetchAgain(!fetchAgain)
         })
 
-        socket.on('added_user', (selectedChat)=>{
+        socket.on('added_user', (selectedChat) => {
             setSelectedChat(selectedChat)
             setFetchAgain(!fetchAgain)
-          })
+        })
 
-        socket.on('removed_user', (selectedChat, userRemoved)=>{
-            if(userRemoved._id==user._id){
+        socket.on('removed_user', (selectedChat, userRemoved) => {
+            if (userRemoved._id == user._id) {
                 setFetchAgain(!fetchAgain)
                 setSelectedChat()
-            }else{
+            } else {
                 setSelectedChat(selectedChat)
                 setFetchAgain(!fetchAgain)
 
             }
         })
 
-        socket.on('user_deleted_group_received', (selectedChat)=>{
+        socket.on('user_deleted_group_received', (selectedChat) => {
             setSelectedChat(selectedChat)
             setFetchAgain(!fetchAgain)
         })
 
-        socket.on('group_renamed', (selectedChat)=>{
+        socket.on('group_renamed', (selectedChat) => {
             setSelectedChat(selectedChat)
             setFetchAgain(!fetchAgain)
         })
+
+        socket.on('message_deleted', (selectedChat) => {
+            console.log("delete recdbbsd", selectedChat)
+            if (!selectedChatCompare ||
+                selectedChatCompare._id !== selectedChat._id) {
+                //give notification
+
+            } else {
+                fetchMessages()
+            }
+        })
+
+        socket.on('message_edited', (selectedChat) => {
+            if (!selectedChatCompare ||
+                selectedChatCompare._id !== selectedChat._id) {
+                //give notification
+
+            } else {
+                fetchMessages()
+            }
+        })
+
     })
-
 
     const handleReplyClose = () => {
         setReplying(null)
         setHideSend(false)
     }
+
     const handleEmojiClick = (event, emojiData) => {
         const emoji = event.emoji;
         setNewMessage(prevMessage => prevMessage ? prevMessage + emoji : emoji);
@@ -298,36 +402,36 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             setFileLoading(false)
             return;
         }
-         if(pics.type!='image/jpeg' && pics.type!="image/png" && pics.type!="application/pdf"&& pics.type!="text/plain" && pics.type!="application/json" && pics.type!="application/zip" && pics.type!="video/mp4" && pics.type!="text/csv"){
+        if (pics.type != 'image/jpeg' && pics.type != "image/png" && pics.type != "application/pdf" && pics.type != "text/plain" && pics.type != "application/json" && pics.type != "application/zip" && pics.type != "video/mp4" && pics.type != "text/csv") {
             toast({
-                title:`pics.type is not supported`,
-                description:"please try sending other files",
+                title: `pics.type is not supported`,
+                description: "please try sending other files",
                 status: "warning",
                 duration: 5000,
                 isClosable: true,
                 position: "bottom",
             });
             setFileLoading(false)
-               return
+            return
         }
         // if (pics.type === "image/jpeg" || pics.type === "image/png") {
-            const data = new FormData();
-            data.append("file", pics);
-            data.append("upload_preset", "chat-app");
-            data.append("cloud_name", "dlpxfirxx");
-            fetch("https://api.cloudinary.com/v1_1/dlpxfirxx/upload", {
-                method: "post",
-                body: data,
+        const data = new FormData();
+        data.append("file", pics);
+        data.append("upload_preset", "chat-app");
+        data.append("cloud_name", "dlpxfirxx");
+        fetch("https://api.cloudinary.com/v1_1/dlpxfirxx/upload", {
+            method: "post",
+            body: data,
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                setFile(data.url.toString());
+                setSelectedFileName(pics.name)
+                setFileLoading(false)
             })
-                .then((res) => res.json())
-                .then((data) => {
-                    setFile(data.url.toString());
-                    setSelectedFileName(pics.name)
-                    setFileLoading(false)
-                })
-                .catch((err) => {
-                    setFileLoading(false)
-                });
+            .catch((err) => {
+                setFileLoading(false)
+            });
     };
 
     const typingHanlder = (e) => {
@@ -401,11 +505,11 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     </Spinner>)
 
                         : (<div className='messages'>
-                            <ScrollableChat messages={messages} setReplying={setReplying} setHideSend={setHideSend} />
+                            <ScrollableChat messages={messages} setReplying={setReplying} setHideSend={setHideSend} deleteMessage={deleteMessage} setEditeding={setEditeding} setNewMessage={setNewMessage} />
                         </div>)}
 
-                    {(hideSend == false && replying == null) && (
-                        <FormControl onKeyDown={sendMessage}>
+                    {(hideSend == false && replying == null && editing == null) && (
+                        <FormControl>
                             {isTyping ? <div>
                                 <Lottie
                                     options={defaultOptions}
@@ -414,28 +518,33 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                                 />
                             </div> : <></>}
 
-                            <Flex d={"flex"}>
+                            <Flex >
                                 {fileLoading ?
                                     <Input
                                         variant={"filled"}
                                         bg="#E0E0E0"
                                         placeholder='Uploading files please wait...'
-                                    // onChange={typingHanlder}
-                                    // value={newMessage}
-                                    /> : <Input
-                                        variant={"filled"}
-                                        bg="#E0E0E0"
-                                        placeholder='Enter message'
-                                        onChange={typingHanlder}
-                                        value={newMessage}
-                                    />
+                                    /> :
+                                    <Flex flex={"1"}>
+                                        <Input
+                                            variant={"filled"}
+                                            border={"none"}
+                                            bg="#E0E0E0"
+                                            placeholder='Enter message'
+                                            onChange={typingHanlder}
+                                            value={newMessage}
+                                        />
+                                        <IconButton bg="#E0E0E0" onClick={sendMessage}><SendIcon bg="#E0E0E0"></SendIcon></IconButton>
+                                    </Flex>
+
+
                                 }
-                               <label htmlFor="file-upload">
-                                        {selectedFileName ? <IconButton  onClick={() => setSelectedFileName('')}><CloseIcon ></CloseIcon></IconButton> : <IconButton as="span" bgColor="#E8E8E8" >
-                                            <AttachmentIcon />
-                                        </IconButton>}
-                                       
-                                    </label>
+                                <label htmlFor="file-upload">
+                                    {selectedFileName ? <IconButton onClick={() => setSelectedFileName('')}><CloseIcon ></CloseIcon></IconButton> : <IconButton as="span" bgColor="#E8E8E8" >
+                                        <AttachmentIcon />
+                                    </IconButton>}
+
+                                </label>
                                 {selectedFileName && (
                                     <Text fontSize="sm" ml={2} alignSelf="center">
                                         {selectedFileName}
@@ -454,7 +563,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
                     {/* Reply Section */}
                     {hideSend && replying && (
-                        <FormControl onKeyDown={sendReply}>
+                        <FormControl>
                             <Flex
                                 flexDir="column"
                                 bg="#F7F7F7"
@@ -488,22 +597,25 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                                             variant={"filled"}
                                             bg="#E0E0E0"
                                             placeholder='Uploading files please wait...'
-                                        // onChange={typingHanlder}
-                                        // value={newMessage}
-                                        /> : <Input
+                                        /> :  <Flex flex={"1"}>
+                                        <Input
                                             variant={"filled"}
+                                            border={"none"}
                                             bg="#E0E0E0"
                                             placeholder='Enter message'
                                             onChange={typingHanlder}
                                             value={newMessage}
                                         />
+                                        <IconButton bg="#E0E0E0" onClick={sendReply}><SendIcon bg="#E0E0E0"></SendIcon></IconButton>
+                                    </Flex>
+
                                     }
                                     {/* Add attachment button if needed */}
                                     <label htmlFor="file-upload">
-                                        {selectedFileName ? <IconButton  onClick={() => setSelectedFileName('')}>  <CloseIcon></CloseIcon></IconButton> : <IconButton as="span" bgColor="#E8E8E8" >
+                                        {selectedFileName ? <IconButton onClick={() => setSelectedFileName('')}>  <CloseIcon></CloseIcon></IconButton> : <IconButton as="span" bgColor="#E8E8E8" >
                                             <AttachmentIcon />
                                         </IconButton>}
-                                       
+
                                     </label>
                                     {selectedFileName && (
                                         <Text fontSize="sm" ml={2} alignSelf="center">
@@ -522,7 +634,43 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                             }
                         </FormControl>
                     )}
+                    {/* {editing messages} */}
 
+                    {editing &&
+                        <FormControl>
+                            {isTyping ? <div>
+                                <Lottie
+                                    options={defaultOptions}
+                                    width={70}
+                                    style={{ marginBottom: 15, marginLeft: 0 }}
+                                />
+                            </div> : <></>}
+
+                            <Flex d={"flex"}>
+                                {fileLoading ?
+                                    <Input
+                                        variant={"filled"}
+                                        bg="#E0E0E0"
+                                        placeholder='Uploading files please wait...'
+                                    /> :  <Flex flex={"1"}>
+                                    <Input
+                                        variant={"filled"}
+                                        border={"none"}
+                                        bg="#E0E0E0"
+                                        placeholder='Enter message'
+                                        onChange={(e)=>setNewMessage(e.target.value)}
+                                        value={newMessage}
+                                    />
+                                    <IconButton bg="#E0E0E0" onClick={editMessage}><SendIcon bg="#E0E0E0"></SendIcon></IconButton>
+                                </Flex>
+
+                                }
+                                <Button bgColor={"#E8E8E8"} onClick={() => setShowEmojiPicker(!showEmojiPicker)}>😃️</Button>
+                            </Flex>
+                            {
+                                showEmojiPicker && <EmojiPicker onEmojiClick={handleEmojiClick} height={250} searchDisabled={true} previewConfig={emojiConfig}></EmojiPicker>
+                            }
+                        </FormControl>}
 
 
                 </Flex>

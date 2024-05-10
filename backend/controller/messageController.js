@@ -65,7 +65,58 @@ const allMessages= async(req, res, next)=>{
       }
 }
 
+const deleteMessage = async(req, res, next)=>{
+  try {
+    const message = await Message.findOne({_id:req.params.msgId})
+    if(!message){
+      throw new ApiError(404, 'Message not found')
+      
+    }
+    if(message.sender.toString()!=req.user._id.toString()){
+      throw new ApiError(400, 'Only Owner can Delete His messages')
+    }
+
+    await Message.deleteOne({_id:req.params.msgId})
+
+     res.status(200).json({
+      success:true,
+      message:"message deleted",
+      data:[]
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const editMessage = async(req, res, next)=>{
+  try {
+    const message = await Message.findOne({_id:req.params.msgId})
+    if(!message){
+      throw new ApiError(404, 'Message not found')
+      
+    }
+  
+    if(message.sender.toString()!=req.user._id.toString()){
+      throw new ApiError(400, 'Only Owner can edit his message')
+    }
+
+     message.content = req.body.content;
+     await message.save();
+
+     res.status(200).json({
+      success:true,
+      message:"Message Edited",
+      data:message
+    })
+
+  } catch (error) {
+    next(error)
+  }
+}
+
 module.exports= {
     sendMessage,
-    allMessages
+    allMessages,
+    deleteMessage,
+    editMessage
 }

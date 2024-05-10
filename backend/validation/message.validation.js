@@ -16,6 +16,17 @@ const fetchMessage = {
       }) 
   };
 
+  const messageEdit= {
+    params: Joi.object()
+    .keys({
+     msgId:Joi.string().required()
+    }) ,
+    body: Joi.object()
+      .keys({
+       content:Joi.string().required()
+      }) 
+  };
+
 module.exports={
-    createMessage, fetchMessage
+    createMessage, fetchMessage,messageEdit
 }

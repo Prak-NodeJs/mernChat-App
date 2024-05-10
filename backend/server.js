@@ -147,6 +147,24 @@ io.on('connection', (socket)=>{
         })
     })
 
+    socket.on('message_delete', (selectedChat, senderId)=>{
+        console.log("message delete", selectedChat, senderId)
+        selectedChat.users.map((u)=>{
+            if(u._id==senderId){
+                return
+            } 
+            socket.in(u._id).emit('message_deleted', selectedChat)
+        })
+    })
+
+    socket.on('message_edit', (selectedChat, senderId)=>{
+        selectedChat.users.map((u)=>{
+            if(u._id==senderId){
+                return
+            } 
+            socket.in(u._id).emit('message_edited', selectedChat)
+        })
+    })
     // socket.on('user left',(userId) )
 
     socket.off("setup", ()=>{

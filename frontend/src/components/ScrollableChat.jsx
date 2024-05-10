@@ -10,7 +10,7 @@ import '../components/style.css';
 import _ from 'lodash'
 
 
-const ScrollableChat = ({ messages, setReplying, setHideSend }) => {
+const ScrollableChat = ({ messages, setReplying, setHideSend, deleteMessage,setEditeding, setNewMessage}) => {
     const { user, selectedChat } = ChatState();
     const [showReplies, setShowReplies] = useState({});
     const toast = useToast()
@@ -21,26 +21,12 @@ const ScrollableChat = ({ messages, setReplying, setHideSend }) => {
     };
 
     const handleDelete = (m) => {
-        toast({
-            title: "We are working on it",
-            description: 'soon it will be available, currently only reply feature is available',
-            status: "success",
-            duration: 5000,
-            isClosable: true,
-            position: "bottom",
-        });
+        deleteMessage(m)
     }
 
-
     const handleEdit = (m) => {
-        toast({
-            title: "We are working on it",
-            description: 'soon it will be available, currently only reply feature is available',
-            status: "success",
-            duration: 5000,
-            isClosable: true,
-            position: "bottom",
-        });
+        setNewMessage(m.content)
+        setEditeding(m)
     }
 
     const toggleReplies = (messageId) => {
@@ -135,17 +121,6 @@ const ScrollableChat = ({ messages, setReplying, setHideSend }) => {
                             >
                                 {renderContent(m.content)}
                                 <span style={{ fontSize: '9px', color: '#555', paddingLeft: "5px" }}>{m.time}</span>
-                                {/* {m.file && (
-
-                                    <Tooltip label="Click to download" placement="top" hasArrow>
-                                        <img
-                                            src={m.file}
-                                            alt="File"
-                                            style={{ maxWidth: '200px', maxHeight: '200px', cursor: 'pointer' }}
-                                            onClick={() => downloadImage(m.file)}
-                                        />
-                                    </Tooltip>
-                                )} */}
                                 {m.file && (
                                     <Tooltip label="Click to download" placement="top">
                                         {m.file.endsWith('.pdf') ? (
@@ -172,18 +147,34 @@ const ScrollableChat = ({ messages, setReplying, setHideSend }) => {
                                         )}
                                     </Tooltip>
                                 )}
-
                             </span>
+                            {/* <Menu>
+                                <MenuButton as={MoreVertIcon} size="md" cursor="pointer" />
+                                <MenuList>
+                                    {user._id == m.sender._id ? <MenuList>
+                                        <MenuItem onClick={() => handleReply(m)}>Reply</MenuItem>
+                                        <MenuItem onClick={() => handleEdit(m)}>Edit</MenuItem>
+                                        <MenuItem onClick={() => handleDelete(m)}>Delete</MenuItem>
+                                    </MenuList> : <MenuList>
+                                        <MenuItem onClick={() => handleReply(m)}>Reply</MenuItem>
+                                        <MenuItem onClick={() => handleEdit(m)}>Edit</MenuItem>
+                                    </MenuList>}
+
+                                </MenuList>
+                            </Menu> */}
                             <Menu>
                                 <MenuButton as={MoreVertIcon} size="md" cursor="pointer" />
                                 <MenuList>
+                                    {user._id === m.sender._id && !m.file && (
+                                        <MenuItem onClick={() => handleEdit(m)}>Edit</MenuItem>
+                                    )}
                                     <MenuItem onClick={() => handleReply(m)}>Reply</MenuItem>
-                                    <MenuItem onClick={() => handleEdit(m)}>Edit</MenuItem>
-                                    <MenuItem onClick={() => handleDelete(m)}>Delete</MenuItem>
+                                    {user._id === m.sender._id && (
+                                        <MenuItem onClick={() => handleDelete(m)}>Delete</MenuItem>
+                                    )}
                                 </MenuList>
                             </Menu>
                         </span>
-
                         {m.replies && m.replies.length > 0 && (
                             <div style={{ marginLeft: "10px", marginTop: "10px" }}>
                                 <span style={{ cursor: 'pointer' }} onClick={() => toggleReplies(m._id)}>
@@ -191,10 +182,9 @@ const ScrollableChat = ({ messages, setReplying, setHideSend }) => {
                                 </span>
                             </div>
                         )}
-
                         {showReplies[m._id] && m.replies.map((reply) => (
                             <div key={reply._id} style={{ marginLeft: "10px" }}>
-                                <span>{user.name === reply.name ? "You" :_.capitalize(reply.name)}: </span>
+                                <span>{user.name === reply.name ? "You" : _.capitalize(reply.name)}: </span>
                                 <span style={{ margin: "10px" }}> {renderContent(reply.content)}
                                 </span>
                                 {reply.file && (
@@ -205,7 +195,7 @@ const ScrollableChat = ({ messages, setReplying, setHideSend }) => {
                                             <p src={reply.file} onClick={() => downloadFileWithName(reply.file)}>.zip</p>
                                         ) : reply.file.endsWith('.mp4') ? (
                                             <video controls height="200px" width={"200px"}>
-                                                <source  src={reply.file} type="video/mp4" onClick={() => downloadFileWithName(reply.file)} />
+                                                <source src={reply.file} type="video/mp4" onClick={() => downloadFileWithName(reply.file)} />
                                             </video>
                                         ) : reply.file.endsWith('.txt') ? (
                                             <p onClick={() => downloadFileWithName(reply.file)}>.txt</p>
