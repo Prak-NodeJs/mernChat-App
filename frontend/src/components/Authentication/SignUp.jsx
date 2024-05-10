@@ -152,7 +152,7 @@ const SignUp = () => {
                 }
 
                 const { data } = await axios.post(
-                    "http://localhost:5000/api/user",
+                    `${window.location.origin}/api/user`,
                     userData
                 );
 

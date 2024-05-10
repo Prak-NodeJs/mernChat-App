@@ -25,7 +25,7 @@ import { Spinner } from '@chakra-ui/spinner'
 import io from 'socket.io-client';
 
 
-const ENDPOINT = "http://localhost:5000"; 
+const ENDPOINT = `${window.location.origin}`; 
  var socket;
 
 const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
@@ -74,7 +74,7 @@ const handleDelete= async (user1)=>{
         },
       };
       const { data } = await axios.put(
-        `http://localhost:5000/api/chat/removefromgroup`,
+        `${window.location.origin}/api/chat/removefromgroup`,
         {
           chatId: selectedChat._id,
           userId: user1._id,
@@ -118,7 +118,7 @@ const handleDelete= async (user1)=>{
               },
             };
             const { data } = await axios.put(
-              `http://localhost:5000/api/chat/removefromgroup`,
+              `${window.location.origin}/api/chat/removefromgroup`,
               {
                 chatId: selectedChat._id,
                 userId: user1._id,
@@ -153,7 +153,7 @@ const handleDelete= async (user1)=>{
             }
          }
 
-         const {data} = await axios.put('http://localhost:5000/api/chat/rename',{
+         const {data} = await axios.put(`${window.location.origin}/api/chat/rename`,{
               chatId:selectedChat._id,
               chatName:groupChatName
          }, config)
@@ -190,7 +190,7 @@ const handleDelete= async (user1)=>{
                   Authorization: `Bearer ${user.token}`,
                 },
               };
-              const { data } = await axios.get(`http://localhost:5000/api/user?search=${search}`, config);
+              const { data } = await axios.get(`${window.location.origin}/api/user?search=${search}`, config);
               setLoading(false);
               setSearchResult(data.data);
             } catch (error) {
@@ -239,7 +239,7 @@ const handleDelete= async (user1)=>{
             };
            
             const { data } = await axios.put(
-              `http://localhost:5000/api/chat/addtogroup`,
+              `${window.location.origin}/api/chat/addtogroup`,
               {
                 chatId: selectedChat._id,
                 userId: user1._id,

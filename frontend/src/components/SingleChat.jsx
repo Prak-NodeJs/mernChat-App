@@ -21,7 +21,7 @@ import SendIcon from '@mui/icons-material/Send';
 
 import animationData from '../animations/typing.json'
 
-const ENDPOINT = "http://localhost:5000"
+const ENDPOINT = `${window.location.origin}`
 
 var socket, selectedChatCompare;
 
@@ -70,7 +70,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 }
             }
             setLoading(true)
-            const { data } = await axios.get(`http://localhost:5000/api/message/${selectedChat._id}`, config)
+            const { data } = await axios.get(`${window.location.origin}/api/message/${selectedChat._id}`, config)
             setMessages(data.data)
             setLoading(false)
 
@@ -107,7 +107,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 }
             }
             setLoading(true)
-            await axios.delete(`http://localhost:5000/api/message/${m._id}`, config)
+            await axios.delete(`${window.location.origin}/api/message/${m._id}`, config)
             fetchMessages()
             setLoading(false)
             socket.emit('message_delete', selectedChat, m.sender._id)
@@ -145,7 +145,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     }
                 }
                 setLoading(true)
-                await axios.put(`http://localhost:5000/api/message/${editing._id}`, {
+                await axios.put(`${window.location.origin}/api/message/${editing._id}`, {
                     content: newMessage
                 }, config)
                 fetchMessages()
@@ -187,7 +187,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 if (file) {
                     messageData.file = file
                 }
-                const { data } = await axios.post("http://localhost:5000/api/message", messageData, config)
+                const { data } = await axios.post(`${window.location.origin}/api/message`, messageData, config)
 
                 socket.emit('new message', data.data)
                 setMessages([...messages, data.data])
@@ -228,7 +228,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     messageData.file = file
                 }
 
-                const { data } = await axios.post(`http://localhost:5000/api/reply/message/${replying._id}`, messageData, config)
+                const { data } = await axios.post(`${window.location.origin}/api/reply/message/${replying._id}`, messageData, config)
 
                 const messageIndex = messages.findIndex(
                     (msg) => msg._id === data.data._id

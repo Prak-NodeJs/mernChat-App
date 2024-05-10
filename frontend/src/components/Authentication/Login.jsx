@@ -63,7 +63,7 @@ const Login = () => {
                 };
 
                 const { data } = await axios.post(
-                    "http://localhost:5000/api/user/login",
+                    `${window.location.origin}/api/user/login`,
                     { email, password },
                     config
                 );
