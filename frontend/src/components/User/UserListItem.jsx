@@ -1,6 +1,6 @@
 import React from 'react'
 import { Avatar } from "@chakra-ui/avatar";
-import { Box, Flex, Text } from "@chakra-ui/layout";
+import { Flex, Text } from "@chakra-ui/layout";
 const UserListItem = ({user, handlerFunction}) => {
     return (
         <Flex
