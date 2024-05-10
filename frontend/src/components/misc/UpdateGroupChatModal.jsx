@@ -26,12 +26,12 @@ import io from 'socket.io-client';
 
 
 const ENDPOINT = "http://localhost:5000"; 
-
+ var socket;
 
 const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
-     const {selectedChat, setSelectedChat,user} = ChatState()
+    const {selectedChat, setSelectedChat,user} = ChatState()
     const { isOpen, onOpen, onClose } = useDisclosure()
-     const toast = useToast()
+    const toast = useToast()
     const [groupChatName, setGroupChatName] = useState('')
     const [search, setSearch] = useState('')
     const [searchResult, setSearchResult] = useState([])
@@ -52,11 +52,11 @@ const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
   };
 
 
+  useEffect(() => {
+    socket = io(ENDPOINT);
+}, [])
 
-
-  useEffect(()=>{
-    
-  })
+ 
 
   const handleGroupChatNameChange = (e) => {
     setGroupChatName(e.target.value);
@@ -64,6 +64,40 @@ const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
         setErrors((prevErrors) => ({ ...prevErrors, groupChatName: '' }));
     }
 };
+
+const handleDelete= async (user1)=>{
+    try {
+      setLoading(true);
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+      const { data } = await axios.put(
+        `http://localhost:5000/api/chat/removefromgroup`,
+        {
+          chatId: selectedChat._id,
+          userId: user1._id,
+        },
+        config
+      );
+      setSelectedChat()
+      setFetchAgain(!fetchAgain);
+      fetchMessages()
+      socket.emit('user_deleted_group',selectedChat.users, data.data,user1)
+      setLoading(false);
+    } catch (error) {
+      toast({
+        title: "Error Occured!",
+        description: "error occured while deleting group",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+      setLoading(false);
+    }      
+}
 
     const handleRemove = async (user1)=>{
         if (selectedChat.groupAdmin._id !== user._id && user1._id !== user._id) {
@@ -91,10 +125,11 @@ const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
               },
               config
             );
-      
-            user1._id === user._id ? setSelectedChat() : setSelectedChat(data.data);
+            user._id==user1._id?setSelectedChat():setSelectedChat(data.data);
             setFetchAgain(!fetchAgain);
             fetchMessages()
+            socket.emit('user_removed',selectedChat.users, data.data ,user1)
+            console.log("user remove emmited", selectedChat)
             setLoading(false);
           } catch (error) {
             toast({
@@ -108,6 +143,7 @@ const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
             setLoading(false);
           }      
     }
+
     const handleRename = async ()=>{
        if(validateForm()) {
        try {
@@ -125,6 +161,7 @@ const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
 
          setSelectedChat(data.data)
          setFetchAgain(!fetchAgain)
+         socket.emit('rename_group',data.data, user)
          setRenameLoading(false)
        } catch (error) {
         console.log(error)
@@ -171,6 +208,7 @@ const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
             }
     }
 
+ 
     const handleAddUser = async (user1)=>{
         if (selectedChat.users.find((u) => u._id === user1._id)) {
             toast({
@@ -201,6 +239,7 @@ const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
                 Authorization: `Bearer ${user.token}`,
               },
             };
+           
             const { data } = await axios.put(
               `http://localhost:5000/api/chat/addtogroup`,
               {
@@ -209,10 +248,12 @@ const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
               },
               config
             );
-      
             setSelectedChat(data.data);
             setFetchAgain(!fetchAgain);
+            socket.emit('user_added', data.data, user)
             setLoading(false);
+            setSearch('');
+            setSearchResult([])
           } catch (error) {
             toast({
               title: "Error Occured!",
@@ -223,9 +264,8 @@ const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
               position: "bottom",
             });
             setLoading(false);
+            setSearch('');
           }
-          setGroupChatName("")
-      
     }
 
     return (
@@ -275,6 +315,7 @@ const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
               <FormControl mb={4}>
                 <Input
                   placeholder="Search Users"
+                  value={search}
                   onChange={(e) => handleSearch(e.target.value)}
                 />
               </FormControl>
@@ -292,8 +333,8 @@ const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
             </ModalBody>
   
             <ModalFooter>
-              <Button colorScheme="red" onClick={() => handleRemove(user)}>
-                Leave Group
+              <Button colorScheme="red" onClick={() =>handleDelete(user)}>
+                Delete Group
               </Button>
             </ModalFooter>
           </ModalContent>

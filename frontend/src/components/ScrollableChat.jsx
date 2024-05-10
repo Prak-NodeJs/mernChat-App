@@ -48,18 +48,37 @@ const ScrollableChat = ({ messages, setReplying, setHideSend }) => {
         }));
     };
 
-    const downloadImage = (imageUrl) => {
-        fetch(imageUrl)
+    // const downloadImage = (imageUrl) => {
+    //     fetch(imageUrl)
+    //         .then((response) => response.blob())
+    //         .then((blob) => {
+    //             const url = window.URL.createObjectURL(blob);
+    //             const a = document.createElement('a');
+    //             a.href = url;
+    //             a.download = 'image.jpg';
+    //             document.body.appendChild(a);
+    //             a.click();
+    //             window.URL.revokeObjectURL(url);
+    //         });
+    // };
+
+    const downloadFile = (fileUrl, fileName) => {
+        fetch(fileUrl)
             .then((response) => response.blob())
             .then((blob) => {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'image.jpg';
+                a.download = fileName;
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);
             });
+    };
+
+    const downloadFileWithName = (fileUrl) => {
+        const fileName = fileUrl.split('/').pop();
+        downloadFile(fileUrl, fileName);
     };
 
     const renderContent = (content) => {
@@ -114,7 +133,7 @@ const ScrollableChat = ({ messages, setReplying, setHideSend }) => {
                             >
                                 {renderContent(m.content)}
                                 <span style={{ fontSize: '9px', color: '#555', paddingLeft: "5px" }}>{m.time}</span>
-                                {m.file && (
+                                {/* {m.file && (
 
                                     <Tooltip label="Click to download" placement="top" hasArrow>
                                         <img
@@ -124,7 +143,34 @@ const ScrollableChat = ({ messages, setReplying, setHideSend }) => {
                                             onClick={() => downloadImage(m.file)}
                                         />
                                     </Tooltip>
+                                )} */}
+                                {m.file && (
+                                    <Tooltip label="Click to download" placement="top">
+                                        {m.file.endsWith('.pdf') ? (
+                                            <if onClick={() => downloadFileWithName(m.file)}>.pdf</if>
+                                        ) : m.file.endsWith('.zip') ? (
+                                            <p src={m.file} onClick={() => downloadFileWithName(m.file)}>.zip</p>
+                                        ) : m.file.endsWith('.mp4') ? (
+                                            <video controls height="200px" width={"200px"}>
+                                                <source height="200px" width={"200px"} src={m.file} type="video/mp4" onClick={() => downloadFileWithName(m.file)} />
+                                            </video>
+                                        ) : m.file.endsWith('.txt') ? (
+                                            <p onClick={() => downloadFileWithName(m.file)}>.txt</p>
+                                        ) : m.file.endsWith('.json') ? (
+                                            <p onClick={() => downloadFileWithName(m.file)}>.json</p>
+                                        ) : m.file.endsWith('.csv') ? (
+                                            <p onClick={() => downloadFileWithName(m.file)}>.csv</p>
+                                        ) : (
+                                            <img
+                                                src={m.file}
+                                                alt="File"
+                                                style={{ maxWidth: '200px', maxHeight: '200px', cursor: 'pointer' }}
+                                                onClick={() => downloadFileWithName(m.file)}
+                                            />
+                                        )}
+                                    </Tooltip>
                                 )}
+
                             </span>
                             <Menu>
                                 <MenuButton as={MoreVertIcon} size="md" cursor="pointer" />
@@ -150,14 +196,29 @@ const ScrollableChat = ({ messages, setReplying, setHideSend }) => {
                                 <span style={{ margin: "10px" }}> {renderContent(reply.content)}
                                 </span>
                                 {reply.file && (
-
-                                    <Tooltip label="Click to download" placement="top" hasArrow>
-                                        <img
-                                            src={reply.file}
-                                            alt="File"
-                                            style={{ maxWidth: '200px', maxHeight: '200px', cursor: 'pointer' }}
-                                            onClick={() => downloadImage(reply.file)}
-                                        />
+                                    <Tooltip label="Click to download" placement="top">
+                                        {reply.file.endsWith('.pdf') ? (
+                                            <if onClick={() => downloadFileWithName(reply.file)}>.pdf</if>
+                                        ) : reply.file.endsWith('.zip') ? (
+                                            <p src={reply.file} onClick={() => downloadFileWithName(reply.file)}>.zip</p>
+                                        ) : reply.file.endsWith('.mp4') ? (
+                                            <video controls height="200px" width={"200px"}>
+                                                <source  src={reply.file} type="video/mp4" onClick={() => downloadFileWithName(reply.file)} />
+                                            </video>
+                                        ) : reply.file.endsWith('.txt') ? (
+                                            <p onClick={() => downloadFileWithName(reply.file)}>.txt</p>
+                                        ) : reply.file.endsWith('.json') ? (
+                                            <p onClick={() => downloadFileWithName(reply.file)}>.json</p>
+                                        ) : reply.file.endsWith('.csv') ? (
+                                            <p onClick={() => downloadFileWithName(reply.file)}>.csv</p>
+                                        ) : (
+                                            <img
+                                                src={reply.file}
+                                                alt="File"
+                                                style={{ maxWidth: '200px', maxHeight: '200px', cursor: 'pointer' }}
+                                                onClick={() => downloadFileWithName(reply.file)}
+                                            />
+                                        )}
                                     </Tooltip>
                                 )}
                                 <span style={{ fontSize: '9px', color: '#555', paddingLeft: "5px" }}>{reply.time}</span>

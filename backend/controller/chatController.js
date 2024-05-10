@@ -81,8 +81,6 @@ const fetchChats =async (req, res, next) => {
 
 const createGroupChat =async (req, res, next) => {
   try {
-  
-
     const {users, chatName} = req.body;
 
     if (!users || !chatName) {

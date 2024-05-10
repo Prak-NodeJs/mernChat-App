@@ -8,7 +8,7 @@ import ChatProvider from './Context/ChatProvider.jsx'
 
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+  // <React.StrictMode>
   
     <BrowserRouter>
     <ChatProvider>
@@ -18,5 +18,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(
      </ChatProvider>
      </BrowserRouter>
    
-  </React.StrictMode>,
+  // </React.StrictMode>,
 )

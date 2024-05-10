@@ -36,7 +36,7 @@ const SideDrawer = () => {
   const navigate = useNavigate()
   const toast = useToast();
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
+const { isOpen, onOpen, onClose } = useDisclosure();
 
 const logoutHandler = ()=>{
   localStorage.removeItem('userInfo');
@@ -67,6 +67,7 @@ const handleSearch = async () => {
     const { data } = await axios.get(`http://localhost:5000/api/user?search=${search}`, config);
     setLoading(false);
     setSearchResult(data.data);
+    setSearch('')
   } catch (error) {
     toast({
       title: "Error Occured!",
@@ -190,6 +191,7 @@ const accessChat = async(userId)=>{
     searchResult?.map(userItem => (
         <UserListItem key={userItem._id} user={userItem} handlerFunction={() => accessChat(userItem._id)} />
     ))
+  
 )}
 
     {loadingChat && <Spinner ml="auto" d="flex"></Spinner>}

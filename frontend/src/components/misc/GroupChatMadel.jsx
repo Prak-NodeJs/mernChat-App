@@ -34,17 +34,12 @@ const GroupChatMadel = ({ children }) => {
 
     const toast = useToast();
 
-    const { user, chats, setChats } = ChatState()
+    const { user, chats, setChats} = ChatState()
 
     useEffect(() => {
         socket = io(ENDPOINT);
     }, [])
 
-    useEffect(()=>{
-    socket.on('user_added_to_group', (userId)=>{
-      console.log("this user is removed from the group", userId)
-    })
-    })
 
     const validateForm = () => {
         const errors = {};
@@ -159,6 +154,8 @@ const GroupChatMadel = ({ children }) => {
           return;
         }
         setSelectedUsers([...selectedUsers, userToAdd]);
+        setSearchResult([])
+        setSearch('')
       };
     
 
@@ -184,7 +181,7 @@ const GroupChatMadel = ({ children }) => {
                         </FormControl>
 
                         <FormControl>
-                            <Input placeholder='Add Users eg: John, Prakash, Jane' mb={1} onChange={(e) => handleSearch(e.target.value)} />
+                            <Input placeholder='Add Users eg: John, Prakash, Jane' value={search} mb={1} onChange={(e) => handleSearch(e.target.value)} />
                         </FormControl>
 
                         {/* selected users */}

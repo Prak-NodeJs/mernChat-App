@@ -24,7 +24,7 @@ const ENDPOINT = "http://localhost:5000"
 var socket, selectedChatCompare;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
-    const { user, selectedChat, setSelectedChat, notification, setNotification } = ChatState()
+    const { user, selectedChat, setSelectedChat, notification, setNotification} = ChatState()
 
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false)
@@ -206,7 +206,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
     useEffect(() => {
         socket.on('message recieved', (newMessageRecieved) => {
-            console.log("messages length before reciveing simple", messages.length)
 
             if (!selectedChatCompare ||
                 selectedChatCompare._id !== newMessageRecieved.chat._id) {
@@ -218,15 +217,11 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
             } else {
                 setMessages([...messages, newMessageRecieved])
-                console.log("messages length before reciveing simple", messages.length)
 
             }
         })
-    })
 
-    useEffect(() => {
         socket.on('reply message recieved', (replyMessageRecieved) => {
-            console.log("messages length before reciveing reply", messages.length)
 
             if (!selectedChatCompare ||
                 selectedChatCompare._id !== replyMessageRecieved.chat._id) {
@@ -255,7 +250,39 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
             }
         })
+      
+        socket.on('user_added_to_group', (selectedChat)=>{
+          setFetchAgain(!fetchAgain)
+        })
+
+        socket.on('added_user', (selectedChat)=>{
+            console.log("added_user", selectedChat)
+            setSelectedChat(selectedChat)
+            setFetchAgain(!fetchAgain)
+          })
+
+        socket.on('removed_user', (selectedChat, userRemoved)=>{
+            if(userRemoved._id==user._id){
+                setFetchAgain(!fetchAgain)
+                setSelectedChat()
+            }else{
+                setSelectedChat(selectedChat)
+                setFetchAgain(!fetchAgain)
+
+            }
+        })
+
+        socket.on('user_deleted_group_received', (selectedChat)=>{
+            setSelectedChat(selectedChat)
+            setFetchAgain(!fetchAgain)
+        })
+
+        socket.on('group_renamed', (selectedChat)=>{
+            setSelectedChat(selectedChat)
+            setFetchAgain(!fetchAgain)
+        })
     })
+
 
     const handleReplyClose = () => {
         setReplying(null)
@@ -281,35 +308,36 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             return;
         }
 
-        if (pics.type === "image/jpeg" || pics.type === "image/png") {
+        // if (pics.type === "image/jpeg" || pics.type === "image/png") {
             const data = new FormData();
             data.append("file", pics);
             data.append("upload_preset", "chat-app");
             data.append("cloud_name", "dlpxfirxx");
-            fetch("https://api.cloudinary.com/v1_1/dlpxfirxx/image/upload", {
+            fetch("https://api.cloudinary.com/v1_1/dlpxfirxx/upload", {
                 method: "post",
                 body: data,
             })
                 .then((res) => res.json())
                 .then((data) => {
                     setFile(data.url.toString());
+                    console.log(data.url.toString())
                     setSelectedFileName(pics.name)
                     setFileLoading(false)
                 })
                 .catch((err) => {
                     setFileLoading(false)
                 });
-        } else {
-            toast({
-                title: "Please Select an Image!",
-                status: "warning",
-                duration: 5000,
-                isClosable: true,
-                position: "bottom",
-            });
-            setFileLoading(false)
-            return;
-        }
+        // } else {
+        //     toast({
+        //         title: "Please Select an Image!",
+        //         status: "warning",
+        //         duration: 5000,
+        //         isClosable: true,
+        //         position: "bottom",
+        //     });
+        //     setFileLoading(false)
+        //     return;
+        // }
     };
 
     const typingHanlder = (e) => {
@@ -397,21 +425,21 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                             </div> : <></>}
 
                             <Flex d={"flex"}>
-                                {fileLoading?
-                                <Input
-                                    variant={"filled"}
-                                    bg="#E0E0E0"
-                                    placeholder='Uploading files please wait...'
+                                {fileLoading ?
+                                    <Input
+                                        variant={"filled"}
+                                        bg="#E0E0E0"
+                                        placeholder='Uploading files please wait...'
                                     // onChange={typingHanlder}
                                     // value={newMessage}
-                                />:  <Input
-                                variant={"filled"}
-                                bg="#E0E0E0"
-                                placeholder='Enter message'
-                                onChange={typingHanlder}
-                                value={newMessage}
-                            />
-                            }
+                                    /> : <Input
+                                        variant={"filled"}
+                                        bg="#E0E0E0"
+                                        placeholder='Enter message'
+                                        onChange={typingHanlder}
+                                        value={newMessage}
+                                    />
+                                }
                                 <label htmlFor="file-upload">
                                     <IconButton as="span" bgColor="#E8E8E8" >
                                         <AttachmentIcon />
@@ -464,21 +492,21 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                                 </Text>
                                 {/* Input Box for Reply */}
                                 <Flex w="100%">
-                                {fileLoading?
-                                <Input
-                                    variant={"filled"}
-                                    bg="#E0E0E0"
-                                    placeholder='Uploading files please wait...'
-                                    // onChange={typingHanlder}
-                                    // value={newMessage}
-                                />:  <Input
-                                variant={"filled"}
-                                bg="#E0E0E0"
-                                placeholder='Enter message'
-                                onChange={typingHanlder}
-                                value={newMessage}
-                            />
-                            }
+                                    {fileLoading ?
+                                        <Input
+                                            variant={"filled"}
+                                            bg="#E0E0E0"
+                                            placeholder='Uploading files please wait...'
+                                        // onChange={typingHanlder}
+                                        // value={newMessage}
+                                        /> : <Input
+                                            variant={"filled"}
+                                            bg="#E0E0E0"
+                                            placeholder='Enter message'
+                                            onChange={typingHanlder}
+                                            value={newMessage}
+                                        />
+                                    }
                                     {/* Add attachment button if needed */}
                                     <label htmlFor="file-upload">
                                         <IconButton as="span" bgColor="#E8E8E8" >

@@ -110,12 +110,50 @@ io.on('connection', (socket)=>{
     })
 
     socket.on('add_user_to_group', (selectedUsers)=>{
-           console.log("these users are added",selectedUsers)
+           console.log("these users are added 2",selectedUsers)
            selectedUsers.map((u)=>{
-             server.in(u._id).emit('user_added_to_group', u._id)
+             socket.in(u._id).emit('user_added_to_group', u)
            })
     })
 
+    socket.on('user_added', (selectedChat, user)=>{
+        console.log("this is used",selectedChat, user)
+        selectedChat.users.map((u)=>{
+            if(u._id==user._id)return
+            console.log(u.name)
+            socket.in(u._id).emit('added_user', selectedChat)
+        })
+        // console.log("this user is added",userId)
+        // socket.in(userId).emit('user_added_received', userId)
+    })
+
+    socket.on('user_removed', (usersFromRemove,selectedChat, user)=>{
+        console.log("this is user removed",usersFromRemove, selectedChat, user)
+        usersFromRemove.map((u)=>{
+            // if(u._id==selectedChat.groupAdmin._id)return
+            // console.log(u.name)
+            socket.in(u._id).emit('removed_user', selectedChat, user)
+        })
+    })
+
+
+    socket.on('user_deleted_group', (usersFromDelete, selectedChat, user)=>{
+           console.log("user_deleted grou..", usersFromDelete)
+          usersFromDelete.map((u)=>{
+            if(u._id==user._id)return
+            socket.in(u._id).emit('user_deleted_group_received', selectedChat)
+
+          })
+    })
+
+    socket.on('rename_group', (selectedChat, user)=>{
+        selectedChat.users.map((u)=>{
+            if(u._id==user._id) return
+            socket.in(u._id).emit('group_renamed', selectedChat)
+        })
+    })
+
+    // socket.on('user left',(userId) )
 
     socket.off("setup", ()=>{
         console.log('user disconnected');
