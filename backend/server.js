@@ -30,15 +30,15 @@ app.use('/api/reply', replyRoutes)
 // ----------------deployment---------------------
 
 // if(process.env.NODE_ENV==='production'){
-//     const rootDirectory = path.resolve(__dirname, '..', 'frontend', 'dist');
+    //     const rootDirectory = path.resolve(__dirname, '..', 'frontend', 'dist');
 
-//     // Serve static files from the root directory
-//     app.use(express.static(rootDirectory));
+    //     // Serve static files from the root directory
+    //     app.use(express.static(rootDirectory));
 
-//     // Serve index.html for all routes
-//     app.get('*', (req, res) => {
-//         res.sendFile(path.resolve(rootDirectory, 'index.html'));
-//     });
+    //     // Serve index.html for all routes
+    //     app.get('*', (req, res) => {
+        //         res.sendFile(path.resolve(rootDirectory, 'index.html'));
+    //     });
 
 // }
 
