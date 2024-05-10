@@ -129,7 +129,6 @@ const handleDelete= async (user1)=>{
             setFetchAgain(!fetchAgain);
             fetchMessages()
             socket.emit('user_removed',selectedChat.users, data.data ,user1)
-            console.log("user remove emmited", selectedChat)
             setLoading(false);
           } catch (error) {
             toast({
@@ -164,7 +163,6 @@ const handleDelete= async (user1)=>{
          socket.emit('rename_group',data.data, user)
          setRenameLoading(false)
        } catch (error) {
-        console.log(error)
         toast({
             title: "Error Occured!",
             description: "Failed error occured while renaming",

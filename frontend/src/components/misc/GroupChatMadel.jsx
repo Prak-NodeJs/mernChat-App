@@ -76,7 +76,6 @@ const GroupChatMadel = ({ children }) => {
               setLoading(false);
               setSearchResult(data.data);
         } catch (error) {
-            console.log(error)
             toast({
                 title: "Error Occured!",
                 description: "Failed to fetch users",
@@ -125,7 +124,6 @@ const GroupChatMadel = ({ children }) => {
           });
         
        } catch (error) {
-        console.log(error)
         toast({
             title: "Error Occured!",
             description: "Failed error occured while creating group chat",

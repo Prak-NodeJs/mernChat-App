@@ -7,6 +7,8 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import ProfileModal from './misc/ProfileModel';
 import CloseIcon from '@mui/icons-material/Close';
 import '../components/style.css';
+import _ from 'lodash'
+
 
 const ScrollableChat = ({ messages, setReplying, setHideSend }) => {
     const { user, selectedChat } = ChatState();
@@ -192,7 +194,7 @@ const ScrollableChat = ({ messages, setReplying, setHideSend }) => {
 
                         {showReplies[m._id] && m.replies.map((reply) => (
                             <div key={reply._id} style={{ marginLeft: "10px" }}>
-                                <span>{user.name === reply.name ? "you" : reply.name}: </span>
+                                <span>{user.name === reply.name ? "You" :_.capitalize(reply.name)}: </span>
                                 <span style={{ margin: "10px" }}> {renderContent(reply.content)}
                                 </span>
                                 {reply.file && (

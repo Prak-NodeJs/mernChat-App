@@ -119,7 +119,6 @@ const SignUp = () => {
                 .then((res) => res.json())
                 .then((data) => {
                     setPic(data.url.toString());
-                    console.log(data.url.toString());
                 })
                 .catch((err) => {
                     setLoading(false);
@@ -170,7 +169,6 @@ const SignUp = () => {
                 navigate('/chats');
             } catch (error) {
                 setLoading(false);
-                console.log(error);
                 toast({
                     title: "Error Occurred!",
                     description: error.response.data.message,

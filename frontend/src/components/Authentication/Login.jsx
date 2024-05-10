@@ -81,7 +81,6 @@ const Login = () => {
                 navigate("/chats");
             } catch (error) {
                 setLoading(false);
-                console.log(error);
                 toast({
                     title: "Error Occurred!",
                     description: error.response ? error.response.data.message : "Network Error",

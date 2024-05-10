@@ -12,7 +12,6 @@ const replyToMessage = async(req, res, next)=>{
         if(!message){
             throw new ApiError(404, 'Message not found');
         }
-
         const replyData = {
             content,
             sender:req.user._id,

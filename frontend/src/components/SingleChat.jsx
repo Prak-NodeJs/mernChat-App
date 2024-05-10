@@ -12,8 +12,9 @@ import './style.css'
 import ScrollableChat from './ScrollableChat'
 import Lottie from "react-lottie";
 import EmojiPicker from 'emoji-picker-react';
-import { AttachmentIcon } from '@chakra-ui/icons'
-import CloseIcon from '@mui/icons-material/Close';
+import { CloseIcon, AttachmentIcon } from '@chakra-ui/icons'
+import _ from 'lodash'
+// import CloseIcon from '@mui/icons-material/Close';
 
 
 
@@ -104,11 +105,9 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     messageData.file = file
                 }
                 const { data } = await axios.post("http://localhost:5000/api/message", messageData, config)
-                console.log("messages length before sending simple", messages.length)
 
                 socket.emit('new message', data.data)
                 setMessages([...messages, data.data])
-                console.log("messages length after sending sending simple", messages.length)
 
                 setFile('')
                 setSelectedFileName('')
@@ -126,7 +125,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     }
 
     const sendReply = async (event) => {
-        console.log("hello reply object", replying)
         if (event.key == "Enter" && (newMessage || file)) {
             socket.emit("stop typing", selectedChat._id)
 
@@ -161,12 +159,9 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 }
 
                 socket.emit('reply message', data.data)
-                console.log("messages length before sending", messages.length)
-                console.log("reply message emitted")
                 // setMessages("this is messages", messages);
                 // fetchMessages()
 
-                console.log("messages length after sending", messages.length)
 
                 setFile('')
                 setSelectedFileName('')
@@ -174,7 +169,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 setReplying(null)
                 setNewMessage('')
             } catch (error) {
-                console.log(error)
                 toast({
                     title: "Error Occured!",
                     description: error.response.data.message,
@@ -232,7 +226,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 }
 
             } else {
-                console.log(messages.length)
                 const messageIndex = messages.findIndex(
                     (msg) => msg._id === replyMessageRecieved._id
                 );
@@ -246,7 +239,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 // fetchMessages()
                 // setMessages([...messages, replyMessageRecieved])
                 // sendMessage(messages)
-                console.log("messages length before reciveing reply", messages.length)
 
             }
         })
@@ -256,7 +248,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         })
 
         socket.on('added_user', (selectedChat)=>{
-            console.log("added_user", selectedChat)
             setSelectedChat(selectedChat)
             setFetchAgain(!fetchAgain)
           })
@@ -307,7 +298,18 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             setFileLoading(false)
             return;
         }
-
+         if(pics.type!='image/jpeg' && pics.type!="image/png" && pics.type!="application/pdf"&& pics.type!="text/plain" && pics.type!="application/json" && pics.type!="application/zip" && pics.type!="video/mp4" && pics.type!="text/csv"){
+            toast({
+                title:`pics.type is not supported`,
+                description:"please try sending other files",
+                status: "warning",
+                duration: 5000,
+                isClosable: true,
+                position: "bottom",
+            });
+            setFileLoading(false)
+               return
+        }
         // if (pics.type === "image/jpeg" || pics.type === "image/png") {
             const data = new FormData();
             data.append("file", pics);
@@ -320,24 +322,12 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 .then((res) => res.json())
                 .then((data) => {
                     setFile(data.url.toString());
-                    console.log(data.url.toString())
                     setSelectedFileName(pics.name)
                     setFileLoading(false)
                 })
                 .catch((err) => {
                     setFileLoading(false)
                 });
-        // } else {
-        //     toast({
-        //         title: "Please Select an Image!",
-        //         status: "warning",
-        //         duration: 5000,
-        //         isClosable: true,
-        //         position: "bottom",
-        //     });
-        //     setFileLoading(false)
-        //     return;
-        // }
     };
 
     const typingHanlder = (e) => {
@@ -377,12 +367,12 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     </IconButton>
                     {!selectedChat.isGroupChat ? (
                         <>
-                            {getSender(user, selectedChat.users)}
+                            {_.capitalize(getSender(user, selectedChat.users))}
                             <ProfileModal user={getSenderFull(user, selectedChat.users)} />
                         </>
                     ) : (
                         <>
-                            {selectedChat.chatName.toUpperCase()}
+                            {_.capitalize(selectedChat.chatName)}
 
                             {/* updategorupchatname */}
                             <UpdateGroupChatModal fetchMessages={fetchMessages} fetchAgain={fetchAgain} setFetchAgain={setFetchAgain} />
@@ -440,11 +430,12 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                                         value={newMessage}
                                     />
                                 }
-                                <label htmlFor="file-upload">
-                                    <IconButton as="span" bgColor="#E8E8E8" >
-                                        <AttachmentIcon />
-                                    </IconButton>
-                                </label>
+                               <label htmlFor="file-upload">
+                                        {selectedFileName ? <IconButton  onClick={() => setSelectedFileName('')}><CloseIcon ></CloseIcon></IconButton> : <IconButton as="span" bgColor="#E8E8E8" >
+                                            <AttachmentIcon />
+                                        </IconButton>}
+                                       
+                                    </label>
                                 {selectedFileName && (
                                     <Text fontSize="sm" ml={2} alignSelf="center">
                                         {selectedFileName}
@@ -509,9 +500,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                                     }
                                     {/* Add attachment button if needed */}
                                     <label htmlFor="file-upload">
-                                        <IconButton as="span" bgColor="#E8E8E8" >
+                                        {selectedFileName ? <IconButton  onClick={() => setSelectedFileName('')}>  <CloseIcon></CloseIcon></IconButton> : <IconButton as="span" bgColor="#E8E8E8" >
                                             <AttachmentIcon />
-                                        </IconButton>
+                                        </IconButton>}
+                                       
                                     </label>
                                     {selectedFileName && (
                                         <Text fontSize="sm" ml={2} alignSelf="center">
