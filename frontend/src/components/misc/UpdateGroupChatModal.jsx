@@ -23,9 +23,9 @@ import axios from 'axios'
 import UserListItem from '../User/UserListItem'
 import { Spinner } from '@chakra-ui/spinner'
 import io from 'socket.io-client';
+import { getSocket } from '../../config/socket.service'
 
-
-const ENDPOINT = `${import.meta.env.VITE_BASE_URL}`; 
+// const ENDPOINT = `${import.meta.env.VITE_BASE_URL}`; 
  var socket;
 
 const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
@@ -53,7 +53,7 @@ const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
 
 
   useEffect(() => {
-    socket = io(ENDPOINT);
+   socket = getSocket();
 }, [])
 
  

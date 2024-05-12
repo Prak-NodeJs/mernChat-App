@@ -74,19 +74,30 @@ io.on('connection', (socket)=>{
 
     socket.on('setup', (userData)=>{
        socket.join(userData._id);
-       const userStatus = {
-        userId:userData._id,
-        status:true
+       const existingUserIndex = onlineUsers.findIndex(user => user.userId === userData._id);
+
+       if (existingUserIndex !== -1) {
+           // Update the existing user's socketId and status
+           onlineUsers[existingUserIndex].socketId = socket.id;
+           onlineUsers[existingUserIndex].status = true;
+       } else {
+           // User doesn't exist, add a new user to onlineUsers
+           const userStatus = {
+               userId: userData._id,
+               socketId: socket.id,
+               status: true
+           };
+           onlineUsers.push(userStatus);
        }
-       onlineUsers.push(userStatus)
+
 
        socket.emit("connected")
-       onlineUsers.map((user)=>{
-        
-            console.log(user['userId'])
-            socket.in(user['userId']).emit('userStatus', onlineUsers)
+    //    onlineUsers.map((user)=>{
+    //         console.log(user['userId'])
+    //         socket.emit('userStatus', onlineUsers)
          
-       })
+    //    })
+    socket.emit('userStatus', onlineUsers)
   
     })
 
@@ -181,24 +192,25 @@ io.on('connection', (socket)=>{
         })
     })
 
-    socket.off("setup", ()=>{
-        console.log('user disconnected');
-        socket.leave(userData._id)
-    })
-
-    // socket.on('disconnect', () => {
-    //     // Update user's online status to false on disconnect
-    //     console.log("disconnected event occured.")
-    //     for (let userId in onlineUsers) {
-    //         if (onlineUsers.hasOwnProperty(userId)) {
-    //             if (socket.rooms.has(userId)) {
-    //                 onlineUsers[userId] = false;
-        
-    //                 // Emit userStatus event to notify clients
-    //                 io.emit('userStatus', { userId, online: false });
-    //                 break;
-    //             }
-    //         }
-    //     }
-    // });
+    // socket.off("setup", ()=>{
+    //     console.log('user disconnected');
+    //     socket.leave(userData._id)
+    // })
+    socket.on('disconnect', () => {
+        // Find the disconnected user in onlineUsers
+        const disconnectedUserIndex = onlineUsers.findIndex(user => user.socketId === socket.id);
+    
+        if (disconnectedUserIndex !== -1) {
+            // Update the status of the disconnected user to false
+            onlineUsers[disconnectedUserIndex].status = false;
+    
+            // Emit userStatus to all clients
+            io.emit('userStatus', onlineUsers);
+    
+            // Remove the disconnected user from onlineUsers (optional)
+            // onlineUsers.splice(disconnectedUserIndex, 1);
+        }    
+        console.log("Disconnected event occurred.");
+    });
+    
 })

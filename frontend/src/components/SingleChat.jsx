@@ -17,11 +17,11 @@ import _ from 'lodash'
 import SendIcon from '@mui/icons-material/Send';
 // import CloseIcon from '@mui/icons-material/Close';
 
-
+import { getSocket } from '../config/socket.service'
 
 import animationData from '../animations/typing.json'
 
-const ENDPOINT = `${import.meta.env.VITE_BASE_URL}`
+// const ENDPOINT = `${import.meta.env.VITE_BASE_URL}`
 
 var socket, selectedChatCompare;
 
@@ -169,7 +169,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     }
 
     const sendMessage = async (event) => {
-        if ( newMessage || file) {
+        if (newMessage || file) {
             socket.emit("stop typing", selectedChat._id)
             try {
                 const config = {
@@ -266,15 +266,18 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     }
 
     useEffect(() => {
-        socket = io(ENDPOINT);
+        socket = getSocket();
         socket.emit('setup', user);
         socket.on('connected', () => {
             setSocketConnected(true)
         })
 
+
         socket.on("typing", () => setIsTyping(true));
         socket.on("stop typing", () => setIsTyping(false));
-
+        return () => {
+            socket.disconnect();
+        };
     }, [])
 
     useEffect(() => {
@@ -286,7 +289,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     useEffect(() => {
         socket.on('userStatus', (onlineUser) => {
             console.log("online users", onlineUser)
-               setOnlineUsers(onlineUser)
+            setOnlineUsers(onlineUser)
         });
 
         socket.on('message recieved', (newMessageRecieved) => {
@@ -334,7 +337,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         })
 
         socket.on('user_added_to_group', (selectedChat) => {
-                            setFetchAgain(!fetchAgain)
+            setFetchAgain(!fetchAgain)
         })
 
         socket.on('added_user', (selectedChat1) => {
@@ -342,8 +345,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             // setFetchAgain(!fetchAgain)
             if (!selectedChatCompare ||
                 selectedChatCompare._id !== selectedChat1._id) {
-                    console.log("this called dsff")
-                    setFetchAgain(!fetchAgain)
+                console.log("this called dsff")
+                setFetchAgain(!fetchAgain)
             } else {
                 setSelectedChat(selectedChat)
             }
@@ -363,8 +366,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         socket.on('user_deleted_group_received', (selectedChat) => {
             if (!selectedChatCompare ||
                 selectedChatCompare._id !== selectedChat._id) {
-                    console.log("this called dsff")
-                    setFetchAgain(!fetchAgain)
+                console.log("this called dsff")
+                setFetchAgain(!fetchAgain)
             } else {
                 setSelectedChat(selectedChat)
                 setFetchAgain(!fetchAgain)
@@ -410,7 +413,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         setNewMessage(prevMessage => prevMessage ? prevMessage + emoji : emoji);
     }
 
-    console.log("hello", onlineUsers)
     const handleFileSelect = (e) => {
         setFileLoading(true)
         let pics = e.target.files[0]
@@ -426,7 +428,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             return;
         }
         console.log(pics.type)
-        if (pics.type != 'image/jpeg' && pics.type != "image/png" && pics.type != "application/pdf" && pics.type != "text/plain" && pics.type != "application/json" && pics.type != "application/zip" && pics.type != "video/mp4" && pics.type != "video/webm" && pics.type!="audio/mpeg" && pics.type!="audio/mp3" && pics.type != "text/csv") {
+        if (pics.type != 'image/jpeg' && pics.type != "image/png" && pics.type != "application/pdf" && pics.type != "text/plain" && pics.type != "application/json" && pics.type != "application/zip" && pics.type != "video/mp4" && pics.type != "video/webm" && pics.type != "audio/mpeg" && pics.type != "audio/mp3" && pics.type != "text/csv") {
             toast({
                 title: `pics.type is not supported`,
                 description: "please try sending other files",
@@ -479,7 +481,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         }, timerLength);
     }
 
-    console.log(onlineUsers)
     return (
         <>{
             selectedChat ? (<>
@@ -494,35 +495,30 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 >
                     <IconButton d="flex" md="none" icon={<ArrowBackIcon />} onClick={() => setSelectedChat('')}>
                     </IconButton>
+                  
                     {!selectedChat.isGroupChat ? (
-                        <>
+                       <>
+                            <div>
+
                             {_.capitalize(getSender(user, selectedChat.users))}
-                         
-                            {/* {onlineUsers[selectedChat.senderId] ? (
-                                <Text ml={2} fontSize="sm" color="green.500">
-                                    (Online)
-                                </Text>
-                            ) : (
-                                <Text ml={2} fontSize="sm" color="gray.500">
-                                    (Offline)
-                                </Text>
-                            )} */}
-                         {/* {selectedChat.users.map((u) => (
-    <p key={u._id}>
-        {user._id !== u._id && (
-            <>
-                {onlineUsers[u._id] ? (
-                    <span style={{ color: 'green' }}>(Online)</span>
-                ) : (
-                    <span style={{ color: 'red' }}>(Offline)</span>
-                )}
-            </>
-        )}
-    </p>
-))} */}
+
+                            {onlineUsers
+                                .filter((user1, index, self) =>
+                                    index === self.findIndex((u) => u.userId === user1.userId)
+                                )
+                                .map((user1) => (
+                                    <p key={user1.userId}>
+                                        {user._id !== user1.userId && (
+                                            <span style={{fontSize:"15px"}}>{user1.status ? 'Online' : 'Offline'}</span>
+                                        )}
+                                    </p>
+                                ))
+                            }
+                            </div>
 
                             <ProfileModal user={getSenderFull(user, selectedChat.users)} />
-                        </>
+</>
+                      
                     ) : (
                         <>
                             {_.capitalize(selectedChat.chatName)}
@@ -646,17 +642,17 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                                             variant={"filled"}
                                             bg="#E0E0E0"
                                             placeholder='Uploading files please wait...'
-                                        /> :  <Flex flex={"1"}>
-                                        <Input
-                                            variant={"filled"}
-                                            border={"none"}
-                                            bg="#E0E0E0"
-                                            placeholder='Enter message'
-                                            onChange={typingHanlder}
-                                            value={newMessage}
-                                        />
-                                        <IconButton bg="#E0E0E0" onClick={sendReply}><SendIcon bg="#E0E0E0"></SendIcon></IconButton>
-                                    </Flex>
+                                        /> : <Flex flex={"1"}>
+                                            <Input
+                                                variant={"filled"}
+                                                border={"none"}
+                                                bg="#E0E0E0"
+                                                placeholder='Enter message'
+                                                onChange={typingHanlder}
+                                                value={newMessage}
+                                            />
+                                            <IconButton bg="#E0E0E0" onClick={sendReply}><SendIcon bg="#E0E0E0"></SendIcon></IconButton>
+                                        </Flex>
 
                                     }
                                     {/* Add attachment button if needed */}
@@ -701,17 +697,17 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                                         variant={"filled"}
                                         bg="#E0E0E0"
                                         placeholder='Uploading files please wait...'
-                                    /> :  <Flex flex={"1"}>
-                                    <Input
-                                        variant={"filled"}
-                                        border={"none"}
-                                        bg="#E0E0E0"
-                                        placeholder='Enter message'
-                                        onChange={(e)=>setNewMessage(e.target.value)}
-                                        value={newMessage}
-                                    />
-                                    <IconButton bg="#E0E0E0" onClick={editMessage}><SendIcon bg="#E0E0E0"></SendIcon></IconButton>
-                                </Flex>
+                                    /> : <Flex flex={"1"}>
+                                        <Input
+                                            variant={"filled"}
+                                            border={"none"}
+                                            bg="#E0E0E0"
+                                            placeholder='Enter message'
+                                            onChange={(e) => setNewMessage(e.target.value)}
+                                            value={newMessage}
+                                        />
+                                        <IconButton bg="#E0E0E0" onClick={editMessage}><SendIcon bg="#E0E0E0"></SendIcon></IconButton>
+                                    </Flex>
 
                                 }
                                 <Button bgColor={"#E8E8E8"} onClick={() => setShowEmojiPicker(!showEmojiPicker)}>😃️</Button>

@@ -15,12 +15,14 @@ import {
 
 } from '@chakra-ui/react'
 import io from 'socket.io-client'
-const ENDPOINT = `${window.location.origin}`
+import { getSocket } from '../../config/socket.service'
+// const ENDPOINT = `${import.meta.env.VITE_BASE_URL}`; 
 var socket;
 
 import { ChatState } from '../../Context/ChatProvider'
 import UserListItem from '../User/UserListItem'
 import UserBadgeItem from '../User/UserBadgeItem'
+
 
 const GroupChatMadel = ({ children }) => {
 
@@ -37,7 +39,7 @@ const GroupChatMadel = ({ children }) => {
     const { user, chats, setChats} = ChatState()
 
     useEffect(() => {
-        socket = io(ENDPOINT);
+     socket = getSocket();
     }, [])
 
 
