@@ -72,7 +72,7 @@ const GroupChatMadel = ({ children }) => {
                 },
               };
           
-              const { data } = await axios.get(`${window.location.origin}/api/user?search=${search}`, config);
+              const { data } = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/user?search=${search}`, config);
               setLoading(false);
               setSearchResult(data.data);
         } catch (error) {
@@ -108,7 +108,7 @@ const GroupChatMadel = ({ children }) => {
             },
           };
       
-          const { data } = await axios.post(`${window.location.origin}/api/chat/group`,{
+          const { data } = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/chat/group`,{
           chatName:groupChatName,
           users:selectedUsers.map((u)=>u._id)
           },config);

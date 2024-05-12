@@ -13,7 +13,6 @@ import _ from 'lodash'
 const ScrollableChat = ({ messages, setReplying, setHideSend, deleteMessage,setEditeding, setNewMessage}) => {
     const { user, selectedChat } = ChatState();
     const [showReplies, setShowReplies] = useState({});
-    const toast = useToast()
 
     const handleReply = (m) => {
         setReplying(m);
@@ -35,20 +34,6 @@ const ScrollableChat = ({ messages, setReplying, setHideSend, deleteMessage,setE
             [messageId]: !prev[messageId],
         }));
     };
-
-    // const downloadImage = (imageUrl) => {
-    //     fetch(imageUrl)
-    //         .then((response) => response.blob())
-    //         .then((blob) => {
-    //             const url = window.URL.createObjectURL(blob);
-    //             const a = document.createElement('a');
-    //             a.href = url;
-    //             a.download = 'image.jpg';
-    //             document.body.appendChild(a);
-    //             a.click();
-    //             window.URL.revokeObjectURL(url);
-    //         });
-    // };
 
     const downloadFile = (fileUrl, fileName) => {
         fetch(fileUrl)
@@ -122,21 +107,47 @@ const ScrollableChat = ({ messages, setReplying, setHideSend, deleteMessage,setE
                                 {renderContent(m.content)}
                                 <span style={{ fontSize: '9px', color: '#555', paddingLeft: "5px" }}>{m.time}</span>
                                 {m.file && (
-                                    <Tooltip label="Click to download" placement="top">
+                                    <Tooltip label="Click to download" placement="top" cursor={"pointer"}>
                                         {m.file.endsWith('.pdf') ? (
-                                            <if onClick={() => downloadFileWithName(m.file)}>.pdf</if>
+                                            <a onClick={() => downloadFileWithName(m.file)}>
+                                            <div style={{ width: '250px', height: '50px', backgroundColor: 'white', border: '1px solid black', textAlign: 'center', lineHeight: '50px' }}>.pdf</div>
+                                            </a>
                                         ) : m.file.endsWith('.zip') ? (
-                                            <p src={m.file} onClick={() => downloadFileWithName(m.file)}>.zip</p>
+                                            <a src={m.file} onClick={() => downloadFileWithName(m.file)}>
+                                                 <div style={{ width: '250px', height: '50px', backgroundColor: 'white', border: '1px solid black', textAlign: 'center', lineHeight: '50px' }}>.zip</div>
+
+                                            </a>
                                         ) : m.file.endsWith('.mp4') ? (
                                             <video controls height="200px" width={"200px"}>
-                                                <source height="200px" width={"200px"} src={m.file} type="video/mp4" onClick={() => downloadFileWithName(m.file)} />
+                                                <source src={m.file} type="video/mp4" onClick={() => downloadFileWithName(m.file)} />
                                             </video>
-                                        ) : m.file.endsWith('.txt') ? (
-                                            <p onClick={() => downloadFileWithName(m.file)}>.txt</p>
+                                        ) : m.file.endsWith('.mpeg') ? (
+                                            <audio controls height="200px" width={"200px"}>
+                                                <source src={m.file} type="audio/mpeg" onClick={() => downloadFileWithName(m.file)} />
+                                            </audio>
+                                        ):m.file.endsWith('.webm') ? (
+                                         <video controls height="200px" width={"200px"}>
+                                                <source src={m.file} type="video/webm" />
+                                            </video>
+                                        ): m.file.endsWith('.mp3') ? (
+                                            <audio controls height="200px" width={"200px"}>
+                                                <source src={m.file} type="audio/mp3" onClick={() => downloadFileWithName(m.file)} />
+                                            </audio>
+                                        )
+                                        : m.file.endsWith('.txt') ? (
+                                            <a onClick={() => downloadFileWithName(m.file)}>
+                                                                <div style={{ width: '250px', height: '50px', backgroundColor: 'white', border: '1px solid black', textAlign: 'center', lineHeight: '50px' }}>.txt</div>
+
+                                            </a>
                                         ) : m.file.endsWith('.json') ? (
-                                            <p onClick={() => downloadFileWithName(m.file)}>.json</p>
+                                            <a onClick={() => downloadFileWithName(m.file)}>
+                                                                <div style={{ width: '250px', height: '50px', backgroundColor: 'white', border: '1px solid black', textAlign: 'center', lineHeight: '50px' }}>.json</div>
+
+                                            </a>
                                         ) : m.file.endsWith('.csv') ? (
-                                            <p onClick={() => downloadFileWithName(m.file)}>.csv</p>
+                                            <a onClick={() => downloadFileWithName(m.file)}>
+                                                                <div style={{ width: '250px', height: '50px', backgroundColor: 'white', border: '1px solid black', textAlign: 'center', lineHeight: '50px' }}>.csv</div>
+                                            </a>
                                         ) : (
                                             <img
                                                 src={m.file}

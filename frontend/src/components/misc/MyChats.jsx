@@ -21,7 +21,7 @@ const MyChats = ({fetchAgain }) => {
         },
       };
 
-      const { data } = await axios.get(`${window.location.origin}/api/chat`, config);
+      const { data } = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/chat`, config);
       setChats(data.data);
     } catch (error) {
       toast({

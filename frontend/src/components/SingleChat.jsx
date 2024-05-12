@@ -21,7 +21,7 @@ import SendIcon from '@mui/icons-material/Send';
 
 import animationData from '../animations/typing.json'
 
-const ENDPOINT = `${window.location.origin}`
+const ENDPOINT = `${import.meta.env.VITE_BASE_URL}`
 
 var socket, selectedChatCompare;
 
@@ -42,6 +42,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
     const [hideSend, setHideSend] = useState(false)
     const [fileLoading, setFileLoading] = useState(false)
+    const [onlineUsers, setOnlineUsers] = useState([]);
 
     const toast = useToast()
 
@@ -70,7 +71,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 }
             }
             setLoading(true)
-            const { data } = await axios.get(`${window.location.origin}/api/message/${selectedChat._id}`, config)
+            const { data } = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/message/${selectedChat._id}`, config)
             setMessages(data.data)
             setLoading(false)
 
@@ -107,7 +108,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 }
             }
             setLoading(true)
-            await axios.delete(`${window.location.origin}/api/message/${m._id}`, config)
+            await axios.delete(`${import.meta.env.VITE_BASE_URL}/api/message/${m._id}`, config)
             fetchMessages()
             setLoading(false)
             socket.emit('message_delete', selectedChat, m.sender._id)
@@ -145,7 +146,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     }
                 }
                 setLoading(true)
-                await axios.put(`${window.location.origin}/api/message/${editing._id}`, {
+                await axios.put(`${import.meta.env.VITE_BASE_URL}/api/message/${editing._id}`, {
                     content: newMessage
                 }, config)
                 fetchMessages()
@@ -187,7 +188,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 if (file) {
                     messageData.file = file
                 }
-                const { data } = await axios.post(`${window.location.origin}/api/message`, messageData, config)
+                const { data } = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/message`, messageData, config)
 
                 socket.emit('new message', data.data)
                 setMessages([...messages, data.data])
@@ -228,7 +229,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     messageData.file = file
                 }
 
-                const { data } = await axios.post(`${window.location.origin}/api/reply/message/${replying._id}`, messageData, config)
+                const { data } = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/reply/message/${replying._id}`, messageData, config)
 
                 const messageIndex = messages.findIndex(
                     (msg) => msg._id === data.data._id
@@ -270,8 +271,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         socket.on('connected', () => {
             setSocketConnected(true)
         })
+
         socket.on("typing", () => setIsTyping(true));
         socket.on("stop typing", () => setIsTyping(false));
+
     }, [])
 
     useEffect(() => {
@@ -281,6 +284,11 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     }, [selectedChat])
 
     useEffect(() => {
+        socket.on('userStatus', (onlineUser) => {
+            console.log("online users", onlineUser)
+               setOnlineUsers(onlineUser)
+        });
+
         socket.on('message recieved', (newMessageRecieved) => {
 
             if (!selectedChatCompare ||
@@ -402,6 +410,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         setNewMessage(prevMessage => prevMessage ? prevMessage + emoji : emoji);
     }
 
+    console.log("hello", onlineUsers)
     const handleFileSelect = (e) => {
         setFileLoading(true)
         let pics = e.target.files[0]
@@ -416,7 +425,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             setFileLoading(false)
             return;
         }
-        if (pics.type != 'image/jpeg' && pics.type != "image/png" && pics.type != "application/pdf" && pics.type != "text/plain" && pics.type != "application/json" && pics.type != "application/zip" && pics.type != "video/mp4" && pics.type != "text/csv") {
+        console.log(pics.type)
+        if (pics.type != 'image/jpeg' && pics.type != "image/png" && pics.type != "application/pdf" && pics.type != "text/plain" && pics.type != "application/json" && pics.type != "application/zip" && pics.type != "video/mp4" && pics.type != "video/webm" && pics.type!="audio/mpeg" && pics.type!="audio/mp3" && pics.type != "text/csv") {
             toast({
                 title: `pics.type is not supported`,
                 description: "please try sending other files",
@@ -469,6 +479,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         }, timerLength);
     }
 
+    console.log(onlineUsers)
     return (
         <>{
             selectedChat ? (<>
@@ -486,6 +497,30 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     {!selectedChat.isGroupChat ? (
                         <>
                             {_.capitalize(getSender(user, selectedChat.users))}
+                         
+                            {/* {onlineUsers[selectedChat.senderId] ? (
+                                <Text ml={2} fontSize="sm" color="green.500">
+                                    (Online)
+                                </Text>
+                            ) : (
+                                <Text ml={2} fontSize="sm" color="gray.500">
+                                    (Offline)
+                                </Text>
+                            )} */}
+                         {/* {selectedChat.users.map((u) => (
+    <p key={u._id}>
+        {user._id !== u._id && (
+            <>
+                {onlineUsers[u._id] ? (
+                    <span style={{ color: 'green' }}>(Online)</span>
+                ) : (
+                    <span style={{ color: 'red' }}>(Offline)</span>
+                )}
+            </>
+        )}
+    </p>
+))} */}
+
                             <ProfileModal user={getSenderFull(user, selectedChat.users)} />
                         </>
                     ) : (

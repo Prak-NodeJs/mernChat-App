@@ -30,15 +30,15 @@ app.use('/api/reply', replyRoutes)
 // ----------------deployment---------------------
 
 // if(process.env.NODE_ENV==='production'){
-    //     const rootDirectory = path.resolve(__dirname, '..', 'frontend', 'dist');
+//         const rootDirectory = path.resolve(__dirname, '..', 'frontend', 'dist');
 
-    //     // Serve static files from the root directory
-    //     app.use(express.static(rootDirectory));
+//         // Serve static files from the root directory
+//         app.use(express.static(rootDirectory));
 
-    //     // Serve index.html for all routes
-    //     app.get('*', (req, res) => {
-        //         res.sendFile(path.resolve(rootDirectory, 'index.html'));
-    //     });
+//         // Serve index.html for all routes
+//         app.get('*', (req, res) => {
+//                 res.sendFile(path.resolve(rootDirectory, 'index.html'));
+//         });
 
 // }
 
@@ -66,13 +66,28 @@ const io = require('socket.io')(server, {
     }
 })
 
+const onlineUsers =[]; // Track online status of users
+
 
 io.on('connection', (socket)=>{
     console.log("connected to socket.io")
 
     socket.on('setup', (userData)=>{
        socket.join(userData._id);
+       const userStatus = {
+        userId:userData._id,
+        status:true
+       }
+       onlineUsers.push(userStatus)
+
        socket.emit("connected")
+       onlineUsers.map((user)=>{
+        
+            console.log(user['userId'])
+            socket.in(user['userId']).emit('userStatus', onlineUsers)
+         
+       })
+  
     })
 
     socket.on('join_chat', (room)=>{
@@ -165,10 +180,25 @@ io.on('connection', (socket)=>{
             socket.in(u._id).emit('message_edited', selectedChat)
         })
     })
-    // socket.on('user left',(userId) )
 
     socket.off("setup", ()=>{
         console.log('user disconnected');
         socket.leave(userData._id)
     })
+
+    // socket.on('disconnect', () => {
+    //     // Update user's online status to false on disconnect
+    //     console.log("disconnected event occured.")
+    //     for (let userId in onlineUsers) {
+    //         if (onlineUsers.hasOwnProperty(userId)) {
+    //             if (socket.rooms.has(userId)) {
+    //                 onlineUsers[userId] = false;
+        
+    //                 // Emit userStatus event to notify clients
+    //                 io.emit('userStatus', { userId, online: false });
+    //                 break;
+    //             }
+    //         }
+    //     }
+    // });
 })

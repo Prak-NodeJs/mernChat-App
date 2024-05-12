@@ -152,7 +152,7 @@ const SignUp = () => {
                 }
 
                 const { data } = await axios.post(
-                    `${window.location.origin}/api/user`,
+                    `${import.meta.env.VITE_BASE_URL}/api/user`,
                     userData
                 );
 

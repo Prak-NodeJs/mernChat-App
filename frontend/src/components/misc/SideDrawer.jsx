@@ -64,7 +64,7 @@ const handleSearch = async () => {
       },
     };
 
-    const { data } = await axios.get(`${window.location.origin}/api/user?search=${search}`, config);
+    const { data } = await axios.get(`${process.env.REACT_APP_BASE_URL}/api/user?search=${search}`, config);
     setLoading(false);
     setSearchResult(data.data);
     setSearch('')
@@ -92,7 +92,7 @@ const accessChat = async(userId)=>{
       },
     };
 
-    const { data } = await axios.post(`${window.location.origin}/api/chat`,{userId}, config);
+    const { data } = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/chat`,{userId}, config);
     if(!chats.find((c)=>c._id==data.data._id)) setChats([data.data, ...chats]);
     setSelectedChat(data.data)
     setLoadingChat(false)

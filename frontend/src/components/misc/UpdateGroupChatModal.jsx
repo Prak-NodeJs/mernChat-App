@@ -25,7 +25,7 @@ import { Spinner } from '@chakra-ui/spinner'
 import io from 'socket.io-client';
 
 
-const ENDPOINT = `${window.location.origin}`; 
+const ENDPOINT = `${import.meta.env.VITE_BASE_URL}`; 
  var socket;
 
 const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
@@ -74,7 +74,7 @@ const handleDelete= async (user1)=>{
         },
       };
       const { data } = await axios.put(
-        `${window.location.origin}/api/chat/removefromgroup`,
+        `${import.meta.env.VITE_BASE_URL}/api/chat/removefromgroup`,
         {
           chatId: selectedChat._id,
           userId: user1._id,
@@ -118,7 +118,7 @@ const handleDelete= async (user1)=>{
               },
             };
             const { data } = await axios.put(
-              `${window.location.origin}/api/chat/removefromgroup`,
+              `${import.meta.env.VITE_BASE_URL}/api/chat/removefromgroup`,
               {
                 chatId: selectedChat._id,
                 userId: user1._id,
@@ -153,7 +153,7 @@ const handleDelete= async (user1)=>{
             }
          }
 
-         const {data} = await axios.put(`${window.location.origin}/api/chat/rename`,{
+         const {data} = await axios.put(`${import.meta.env.VITE_BASE_URL}/api/chat/rename`,{
               chatId:selectedChat._id,
               chatName:groupChatName
          }, config)
@@ -190,7 +190,7 @@ const handleDelete= async (user1)=>{
                   Authorization: `Bearer ${user.token}`,
                 },
               };
-              const { data } = await axios.get(`${window.location.origin}/api/user?search=${search}`, config);
+              const { data } = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/user?search=${search}`, config);
               setLoading(false);
               setSearchResult(data.data);
             } catch (error) {
@@ -239,7 +239,7 @@ const handleDelete= async (user1)=>{
             };
            
             const { data } = await axios.put(
-              `${window.location.origin}/api/chat/addtogroup`,
+              `${import.meta.env.VITE_BASE_URL}/api/chat/addtogroup`,
               {
                 chatId: selectedChat._id,
                 userId: user1._id,
