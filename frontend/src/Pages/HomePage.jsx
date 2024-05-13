@@ -23,7 +23,7 @@ const HomePage = () => {
             borderWidth={"1px"}
         >
             <Text fontSize={"4xl"} color="black">
-                Smart Connect
+                SmartConnect
             </Text>
         </Flex>
 
