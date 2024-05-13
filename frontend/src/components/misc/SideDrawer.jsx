@@ -17,7 +17,7 @@ import { Avatar
  } from '@chakra-ui/react'
 import { ChatState } from '../../Context/ChatProvider';
 
-import {Box, Text} from '@chakra-ui/layout'
+import {Text} from '@chakra-ui/layout'
 import { useNavigate } from 'react-router-dom'
 import ProfileModal from './ProfileModel'
 import { useToast } from "@chakra-ui/toast";
@@ -64,11 +64,13 @@ const handleSearch = async () => {
       },
     };
 
-    const { data } = await axios.get(`${process.env.REACT_APP_BASE_URL}/api/user?search=${search}`, config);
+    const { data } = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/user?search=${search}`, config);
     setLoading(false);
     setSearchResult(data.data);
     setSearch('')
   } catch (error) {
+    console.log(error)
+    setLoading(false)
     toast({
       title: "Error Occured!",
       description:error.response.data.message,

@@ -302,10 +302,7 @@ document.addEventListener('visibilitychange', () => {
                 });
             }
         });
-    
-        return () => {
-            socket.disconnect();
-        };
+
     }, [])
 
         useEffect(() => {
