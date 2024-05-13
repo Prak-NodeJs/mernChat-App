@@ -41,6 +41,15 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     const [fileLoading, setFileLoading] = useState(false)
     const [onlineUsers, setOnlineUsers] = useState([]);
 
+    let isViewed = true;
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    isViewed = false;
+  } else {
+    isViewed = true;
+  }
+});
     const toast = useToast()
 
     const emojiConfig =
@@ -145,18 +154,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     content: newMessage
                 }, config)
 
-             
-                // const messageIndex = messages.findIndex(
-                //     (msg) => msg._id === data.data._id
-                // );
-        
-                // console.log(messageIndex)
-                // if (messageIndex !== -1) {
-                //     // If the message exists, replace it with the replied message data
-                //     const updatedMessages = [...messages];
-                //     updatedMessages[messageIndex] =data.data;
-                //     setMessages(updatedMessages);
-                // }
                 const updatedMessages = messages.map(msg =>
                     msg._id === data.data._id ? { ...msg, content: data.data.content } : msg
                 );
@@ -248,17 +245,13 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 );
 
                 if (messageIndex !== -1) {
-                    // If the message exists, replace it with the replied message data
                     const updatedMessages = [...messages];
                     updatedMessages[messageIndex] = data.data;
                     setMessages(updatedMessages);
                 }
 
                 socket.emit('reply message', data.data)
-                // setMessages("this is messages", messages);
-                // fetchMessages()
-
-
+            
                 setFile('')
                 setSelectedFileName('')
                 setHideSend(false)
@@ -315,39 +308,63 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         };
     }, [])
 
-    useEffect(() => {
+        useEffect(() => {
         fetchMessages();
 
         selectedChatCompare = selectedChat;
     }, [selectedChat])
 
     useEffect(() => {
-        // socket.on('userStatus', (onlineUser) => {
-        //     console.log("online users", onlineUser)
-        //     setOnlineUsers(onlineUser)
-        // });
-
-        socket.on('message recieved', (newMessageRecieved) => {
-
-            if (!selectedChatCompare ||
-                selectedChatCompare._id !== newMessageRecieved.chat._id) {
+        socket.on('message recieved', (newMessageRecieved) => { 
+            if(!isViewed){
+                const rnotification = new Notification(`New Message from ${getSender(user, newMessageRecieved.chat.users)}`, {
+                    body: `${newMessageRecieved.content}`,
+                });
+            
+                // Handle notification click
+                rnotification.onclick = () => {
+                   
+                    window.focus(); 
+                    setFetchAgain(!fetchAgain)
+                    setSelectedChat(newMessageRecieved.chat)
+                    rnotification.close()
+                };
+            
+            }
+            else if (!selectedChatCompare ||
+                    selectedChatCompare._id !== newMessageRecieved.chat._id) {
                 //give notification
                 if (!notification.includes(newMessageRecieved)) {
-                    setNotification([newMessageRecieved, ...notification])
-                    setFetchAgain(!fetchAgain)
-                }
+                            setNotification([newMessageRecieved, ...notification])
+                            setFetchAgain(!fetchAgain)
+                    }
 
-            } else {
+              } else {
                 setMessages([...messages, newMessageRecieved])
-
-            }
+              
+}
         })
 
         socket.on('reply message recieved', (replyMessageRecieved) => {
-
-            if (!selectedChatCompare ||
+         if(!isViewed){
+            if(!isViewed){
+                const rnotification = new Notification(`New Message from ${getSender(user, replyMessageRecieved.chat.users)}`, {
+                    body: `${replyMessageRecieved.content}`,
+                });
+            
+                // Handle notification click
+                rnotification.onclick = () => {
+                   
+                    window.focus(); 
+                    setFetchAgain(!fetchAgain)
+                    setSelectedChat(replyMessageRecieved.chat)
+                    rnotification.close()
+                };
+            
+            }
+         }
+        else if (!selectedChatCompare ||
                 selectedChatCompare._id !== replyMessageRecieved.chat._id) {
-                //give notification
                 if (!notification.includes(replyMessageRecieved)) {
                     setNotification([replyMessageRecieved, ...notification])
                     setFetchAgain(!fetchAgain)
@@ -359,15 +376,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 );
 
                 if (messageIndex !== -1) {
-                    // If the message exists, replace it with the replied message data
                     const updatedMessages = [...messages];
                     updatedMessages[messageIndex] = replyMessageRecieved;
                     setMessages(updatedMessages);
                 }
-                // fetchMessages()
-                // setMessages([...messages, replyMessageRecieved])
-                // sendMessage(messages)
-
             }
         })
 
@@ -376,11 +388,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         })
 
         socket.on('added_user', (selectedChat1) => {
-            // setSelectedChat(selectedChat)
-            // setFetchAgain(!fetchAgain)
             if (!selectedChatCompare ||
                 selectedChatCompare._id !== selectedChat1._id) {
-                console.log("this called dsff")
                 setFetchAgain(!fetchAgain)
             } else {
                 setSelectedChat(selectedChat)
@@ -401,7 +410,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         socket.on('user_deleted_group_received', (selectedChat) => {
             if (!selectedChatCompare ||
                 selectedChatCompare._id !== selectedChat._id) {
-                console.log("this called dsff")
                 setFetchAgain(!fetchAgain)
             } else {
                 setSelectedChat(selectedChat)
@@ -416,11 +424,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         })
 
         socket.on('message_deleted', (selectedChat,updatedMessages) => {
-            console.log("delete recdbbsd", selectedChat)
             if (!selectedChatCompare ||
                 selectedChatCompare._id !== selectedChat._id) {
-                //give notification
-
             } else {
                 setMessages(updatedMessages)
             }
@@ -428,10 +433,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
         socket.on('message_edited', (selectedChat, updatedMessages) => {
 
-            console.log("messages edited")
             if (!selectedChatCompare ||
                 selectedChatCompare._id !== selectedChat._id) {
-                //give notification
 
             } else {
                 setMessages(updatedMessages)
@@ -464,7 +467,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             setFileLoading(false)
             return;
         }
-        console.log(pics.type)
         if (pics.type != 'image/jpeg' && pics.type != "image/png" && pics.type != "application/pdf" && pics.type != "text/plain" && pics.type != "application/json" && pics.type != "application/zip" && pics.type != "video/mp4" && pics.type != "video/webm" && pics.type != "audio/mpeg" && pics.type != "audio/mp3" && pics.type != "text/csv") {
             toast({
                 title: `pics.type is not supported`,
@@ -477,7 +479,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             setFileLoading(false)
             return
         }
-        // if (pics.type === "image/jpeg" || pics.type === "image/png") {
         const data = new FormData();
         data.append("file", pics);
         data.append("upload_preset", "chat-app");

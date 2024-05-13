@@ -70,7 +70,6 @@ const onlineUsers =[]; // Track online status of users
 
 
 io.on('connection', (socket)=>{
-    console.log("connected to socket.io")
 
     // socket.on('setup', (userData)=>{
     //    socket.join(userData._id);
@@ -145,8 +144,6 @@ io.on('connection', (socket)=>{
 
         if(!chat.users) return console.log('chat.users not defined');
         chat.users.forEach((user)=>{
-            // if(user._id!=replyMessageRecieved.replies[0].sender) return;
-
             socket.in(user._id).emit('reply message recieved', replyMessageRecieved)
         })
     })
@@ -160,17 +157,12 @@ io.on('connection', (socket)=>{
     socket.on('user_added', (selectedChat, user)=>{
         selectedChat.users.map((u)=>{
             if(u._id==user._id)return
-            console.log(u.name)
             socket.in(u._id).emit('added_user', selectedChat)
         })
-        // console.log("this user is added",userId)
-        // socket.in(userId).emit('user_added_received', userId)
     })
 
     socket.on('user_removed', (usersFromRemove,selectedChat, user)=>{
         usersFromRemove.map((u)=>{
-            // if(u._id==selectedChat.groupAdmin._id)return
-            // console.log(u.name)
             socket.in(u._id).emit('removed_user', selectedChat, user)
         })
     })
@@ -210,14 +202,10 @@ io.on('connection', (socket)=>{
     })
 
     socket.on('disconnect', () => {
-        // Find the disconnected user in onlineUsers
         const disconnectedUserIndex = onlineUsers.findIndex(user => user.socketId === socket.id);
     
         if (disconnectedUserIndex !== -1) {
-            // Update the status of the disconnected user to false
             onlineUsers[disconnectedUserIndex].status = false;
-    
-            // Emit userStatus to all clients
             io.emit('userStatus', onlineUsers);
         }    
         console.log("Disconnected event occurred.");
