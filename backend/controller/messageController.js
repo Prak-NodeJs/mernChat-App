@@ -5,7 +5,7 @@ const {ApiError}= require('../middleware/ApiError')
 
 const sendMessage=  async(req, res, next)=>{
   try {
-    const {content, chatId, file} = req.body
+    const {content, chatId, file, grpAddEvent} = req.body
    
    const isChatExist = await Chat.findOne({_id:chatId})
    if(!isChatExist){
@@ -21,6 +21,10 @@ const sendMessage=  async(req, res, next)=>{
     newMessage.file = file;
    }
  
+   if(grpAddEvent){
+    newMessage.grpAddEvent = grpAddEvent
+   }
+
     var message = await Message.create(newMessage);
 
     message = await message.populate("sender", "name pic")
@@ -53,7 +57,13 @@ const allMessages= async(req, res, next)=>{
         const messages = await Message.find({ chat: req.params.chatId })
           .populate("sender", "name pic email")
           .populate("replies")
-          .populate("chat");
+          .populate({
+            path: 'chat',
+            populate: [
+                { path: 'groupAdmin' },
+                { path: 'users' }
+            ]
+        });
 
         res.status(200).json({
           success:true,

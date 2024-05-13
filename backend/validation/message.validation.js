@@ -7,6 +7,7 @@ const createMessage = {
         content: Joi.string(),
         chatId: Joi.string().required().custom(objectId),
        file:Joi.string(),
+       grpAddEvent:Joi.boolean()
       }) 
   };
 

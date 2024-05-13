@@ -112,6 +112,15 @@ const GroupChatMadel = ({ children }) => {
                     chatName: groupChatName,
                     users: selectedUsers.map((u) => u._id)
                 }, config);
+                
+                const messageData = {
+                    content:"grp content",
+                    grpAddEvent:true,
+                    chatId:data.data._id
+                }
+
+                await axios.post(`${import.meta.env.VITE_BASE_URL}/api/message`, messageData, config)
+
                 setChats([data.data, ...chats])
                 socket.emit('add_user_to_group', (selectedUsers))
                 onClose();

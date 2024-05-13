@@ -6,13 +6,13 @@ const messageSchema = mongoose.Schema(
     sender: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     content: { type: String, trim: true },
     file:{type:String, trim:true},
+    grpAddEvent:{type:Boolean, default:false},
     replies: [{ type: mongoose.Schema.Types.ObjectId, ref: "Reply" }],
     time: {
       type: String,
       trim: true,
       default: function() {
         const currentDate = new Date();
-
         // Extract hours and minutes
         const hours = currentDate.getHours();
         const minutes = currentDate.getMinutes();
