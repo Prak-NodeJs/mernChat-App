@@ -10,7 +10,6 @@ const protect = async (req, res, next) => {
     !req.headers.authorization.startsWith("Bearer")
   ) {
     throw new ApiError(400,'No token, anauthorized')
-     
   }
 
   token = req.headers.authorization.split(" ")[1];

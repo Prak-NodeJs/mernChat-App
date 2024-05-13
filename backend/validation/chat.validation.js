@@ -1,9 +1,10 @@
 const Joi = require('joi')
+const {objectId} = require('./custom.validation')
 
 const createChat = {
     body: Joi.object()
       .keys({
-       userId:Joi.string().required()
+       userId:Joi.string().required().custom(objectId)
       }) 
   };
 
@@ -19,14 +20,14 @@ const createChat = {
     body: Joi.object()
       .keys({
       chatName:Joi.string().required(),
-      chatId:Joi.string().required()
+      chatId:Joi.string().required().custom(objectId)
       }) 
   };
 
 const removeUser = {
   body:Joi.object().keys({
-    userId:Joi.string().required(),
-    chatId:Joi.string().required()
+    userId:Joi.string().required().custom(objectId),
+    chatId:Joi.string().required().custom(objectId)
   })
 }
 
