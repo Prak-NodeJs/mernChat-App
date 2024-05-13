@@ -394,13 +394,12 @@ document.addEventListener('visibilitychange', () => {
         })
 
         socket.on('removed_user', (selectedChat, userRemoved) => {
-            if (userRemoved._id == user._id) {
+            if (!selectedChatCompare ||
+                selectedChatCompare._id !== selectedChat._id) {
+                setFetchAgain(!fetchAgain)
+            } else {
                 setFetchAgain(!fetchAgain)
                 setSelectedChat()
-            } else {
-                setSelectedChat(selectedChat)
-                setFetchAgain(!fetchAgain)
-
             }
         })
 
