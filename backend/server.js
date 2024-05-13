@@ -208,7 +208,6 @@ io.on('connection', (socket)=>{
             onlineUsers[disconnectedUserIndex].status = false;
             io.emit('userStatus', onlineUsers);
         }    
-        console.log("Disconnected event occurred.");
     });
     
 })
