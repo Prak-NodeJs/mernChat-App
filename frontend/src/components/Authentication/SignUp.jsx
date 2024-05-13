@@ -46,12 +46,18 @@ const SignUp = () => {
         } else if (!/\S+@\S+\.\S+/.test(email)) {
             errors.email = 'Email is invalid';
             isValid = false;
-        }
+        } 
 
         if (!password.trim()) {
             errors.password = 'Password is required';
             isValid = false;
         }
+        else if (password.length < 8) {
+            errors.password = 'password must be at least 8 characters'
+          }
+         else if (!/\d/.test(password) || !/[a-zA-Z]/.test(password)) {
+            errors.password = 'password must contain at least 1 letter and 1 number'
+          }
 
         if (!confirmpassword.trim()) {
             errors.confirmpassword = 'Password is required';
