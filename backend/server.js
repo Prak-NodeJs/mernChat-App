@@ -102,7 +102,7 @@ io.on('connection', (socket)=>{
             onlineUsers[existingUserIndex].socketId = socket.id;
             onlineUsers[existingUserIndex].status = true;
             // Emit only the updated user information to all clients
-            io.emit('userStatus', onlineUsers[existingUserIndex]);
+            io.emit('userStatus', onlineUsers);
         } else {
             // User is joining for the first time, add them to the array
             const userStatus = {
@@ -159,11 +159,11 @@ io.on('connection', (socket)=>{
             if(u._id==user._id)return
             socket.in(u._id).emit('added_user', selectedChat)
         })
-    })
+            })
 
     socket.on('user_removed', (usersFromRemove,selectedChat, user)=>{
         usersFromRemove.map((u)=>{
-            socket.in(u._id).emit('removed_user', selectedChat, user)
+                        socket.in(u._id).emit('removed_user', selectedChat, user)
         })
     })
 
@@ -202,12 +202,12 @@ io.on('connection', (socket)=>{
     })
 
     socket.on('disconnect', () => {
-        const disconnectedUserIndex = onlineUsers.findIndex(user => user.socketId === socket.id);
+                const disconnectedUserIndex = onlineUsers.findIndex(user => user.socketId === socket.id);
     
         if (disconnectedUserIndex !== -1) {
-            onlineUsers[disconnectedUserIndex].status = false;
-            io.emit('userStatus', onlineUsers);
+                        onlineUsers[disconnectedUserIndex].status = false;
+                io.emit('userStatus', onlineUsers);
         }    
-    });
+            });
     
 })
