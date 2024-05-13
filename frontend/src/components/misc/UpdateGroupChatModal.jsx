@@ -50,8 +50,6 @@ const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
       setErrors(errors);
       return isValid;
   };
-
-
   useEffect(() => {
    socket = getSocket();
 }, [])

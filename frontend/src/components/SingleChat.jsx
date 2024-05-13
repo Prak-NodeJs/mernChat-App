@@ -7,7 +7,6 @@ import { getSender, getSenderFull } from '../config/ChatLogic'
 import ProfileModal from './misc/ProfileModel'
 import UpdateGroupChatModal from './misc/UpdateGroupChatModal'
 import axios from 'axios'
-import io from 'socket.io-client'
 import './style.css'
 import ScrollableChat from './ScrollableChat'
 import Lottie from "react-lottie";
@@ -15,13 +14,11 @@ import EmojiPicker from 'emoji-picker-react';
 import { CloseIcon, AttachmentIcon } from '@chakra-ui/icons'
 import _ from 'lodash'
 import SendIcon from '@mui/icons-material/Send';
-// import CloseIcon from '@mui/icons-material/Close';
 
 import { getSocket } from '../config/socket.service'
 
 import animationData from '../animations/typing.json'
 
-// const ENDPOINT = `${import.meta.env.VITE_BASE_URL}`
 
 var socket, selectedChatCompare;
 
@@ -107,11 +104,11 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     Authorization: `Bearer ${user.token}`
                 }
             }
-            setLoading(true)
             await axios.delete(`${import.meta.env.VITE_BASE_URL}/api/message/${m._id}`, config)
-            fetchMessages()
-            setLoading(false)
-            socket.emit('message_delete', selectedChat, m.sender._id)
+            const updatedMessages = messages.filter((msg) => msg._id !== m._id);
+
+             setMessages(updatedMessages)
+            socket.emit('message_delete', selectedChat, updatedMessages, m.sender._id)
         } catch (error) {
             toast({
                 title: "Error Occured!",
@@ -121,7 +118,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 isClosable: true,
                 position: "bottom",
             });
-            setLoading(false)
         }
     }
 
@@ -145,15 +141,30 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                         Authorization: `Bearer ${user.token}`
                     }
                 }
-                setLoading(true)
-                await axios.put(`${import.meta.env.VITE_BASE_URL}/api/message/${editing._id}`, {
+               const {data}= await axios.put(`${import.meta.env.VITE_BASE_URL}/api/message/${editing._id}`, {
                     content: newMessage
                 }, config)
-                fetchMessages()
+
+             
+                // const messageIndex = messages.findIndex(
+                //     (msg) => msg._id === data.data._id
+                // );
+        
+                // console.log(messageIndex)
+                // if (messageIndex !== -1) {
+                //     // If the message exists, replace it with the replied message data
+                //     const updatedMessages = [...messages];
+                //     updatedMessages[messageIndex] =data.data;
+                //     setMessages(updatedMessages);
+                // }
+                const updatedMessages = messages.map(msg =>
+                    msg._id === data.data._id ? { ...msg, content: data.data.content } : msg
+                );
+                setMessages(updatedMessages);
                 setLoading(false)
                 setNewMessage('')
                 setEditeding(null)
-                socket.emit('message_edit', selectedChat, editing.sender._id)
+                socket.emit('message_edit', selectedChat, updatedMessages, editing.sender._id)
             }
         } catch (error) {
             toast({
@@ -164,8 +175,9 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 isClosable: true,
                 position: "bottom",
             });
-            setLoading(false)
-        }
+        
+        }         
+
     }
 
     const sendMessage = async (event) => {
@@ -275,6 +287,29 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
         socket.on("typing", () => setIsTyping(true));
         socket.on("stop typing", () => setIsTyping(false));
+
+        socket.on('userStatus', (userData) => {
+            // Check if userData is an array or a single user object
+            if (Array.isArray(userData)) {
+                // Update onlineUsers state with the entire array
+                setOnlineUsers(userData);
+            } else {
+                // Update onlineUsers state with the updated user information
+                setOnlineUsers((prevOnlineUsers) => {
+                    const existingUserIndex = prevOnlineUsers.findIndex(user => user.userId === userData.userId);
+                    if (existingUserIndex !== -1) {
+                        // User is reconnecting, update their information
+                        const updatedOnlineUsers = [...prevOnlineUsers];
+                        updatedOnlineUsers[existingUserIndex] = userData;
+                        return updatedOnlineUsers;
+                    } else {
+                        // User is joining for the first time, add them to the array
+                        return [...prevOnlineUsers, userData];
+                    }
+                });
+            }
+        });
+    
         return () => {
             socket.disconnect();
         };
@@ -287,10 +322,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     }, [selectedChat])
 
     useEffect(() => {
-        socket.on('userStatus', (onlineUser) => {
-            console.log("online users", onlineUser)
-            setOnlineUsers(onlineUser)
-        });
+        // socket.on('userStatus', (onlineUser) => {
+        //     console.log("online users", onlineUser)
+        //     setOnlineUsers(onlineUser)
+        // });
 
         socket.on('message recieved', (newMessageRecieved) => {
 
@@ -380,24 +415,26 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             setFetchAgain(!fetchAgain)
         })
 
-        socket.on('message_deleted', (selectedChat) => {
+        socket.on('message_deleted', (selectedChat,updatedMessages) => {
             console.log("delete recdbbsd", selectedChat)
             if (!selectedChatCompare ||
                 selectedChatCompare._id !== selectedChat._id) {
                 //give notification
 
             } else {
-                fetchMessages()
+                setMessages(updatedMessages)
             }
         })
 
-        socket.on('message_edited', (selectedChat) => {
+        socket.on('message_edited', (selectedChat, updatedMessages) => {
+
+            console.log("messages edited")
             if (!selectedChatCompare ||
                 selectedChatCompare._id !== selectedChat._id) {
                 //give notification
 
             } else {
-                fetchMessages()
+                setMessages(updatedMessages)
             }
         })
 

@@ -72,34 +72,53 @@ const onlineUsers =[]; // Track online status of users
 io.on('connection', (socket)=>{
     console.log("connected to socket.io")
 
-    socket.on('setup', (userData)=>{
-       socket.join(userData._id);
-       const existingUserIndex = onlineUsers.findIndex(user => user.userId === userData._id);
+    // socket.on('setup', (userData)=>{
+    //    socket.join(userData._id);
+    //    const existingUserIndex = onlineUsers.findIndex(user => user.userId === userData._id);
 
-       if (existingUserIndex !== -1) {
-           // Update the existing user's socketId and status
-           onlineUsers[existingUserIndex].socketId = socket.id;
-           onlineUsers[existingUserIndex].status = true;
-       } else {
-           // User doesn't exist, add a new user to onlineUsers
-           const userStatus = {
-               userId: userData._id,
-               socketId: socket.id,
-               status: true
-           };
-           onlineUsers.push(userStatus);
-       }
+    //    if (existingUserIndex !== -1) {
+    //        onlineUsers[existingUserIndex].socketId = socket.id;
+    //        onlineUsers[existingUserIndex].status = true;
+    //    } else {
+    //        const userStatus = {
+    //            userId: userData._id,
+    //            socketId: socket.id,
+    //            status: true
+    //        };
+    //        onlineUsers.push(userStatus);
+    //    }
 
 
-       socket.emit("connected")
-    //    onlineUsers.map((user)=>{
-    //         console.log(user['userId'])
-    //         socket.emit('userStatus', onlineUsers)
-         
-    //    })
-    socket.emit('userStatus', onlineUsers)
+    //    socket.emit("connected")
+    //    socket.emit('userStatus', onlineUsers)
   
-    })
+    // })
+
+    socket.on('setup', (userData) => {
+        socket.join(userData._id);
+        const existingUserIndex = onlineUsers.findIndex(user => user.userId === userData._id);
+    
+        if (existingUserIndex !== -1) {
+            // User is reconnecting, update their socketId and status
+            onlineUsers[existingUserIndex].socketId = socket.id;
+            onlineUsers[existingUserIndex].status = true;
+            // Emit only the updated user information to all clients
+            io.emit('userStatus', onlineUsers[existingUserIndex]);
+        } else {
+            // User is joining for the first time, add them to the array
+            const userStatus = {
+                userId: userData._id,
+                socketId: socket.id,
+                status: true
+            };
+            onlineUsers.push(userStatus);
+            // Emit the updated onlineUsers array to all clients
+            io.emit('userStatus', onlineUsers);
+        }
+    
+        socket.emit("connected");
+    });
+    
 
     socket.on('join_chat', (room)=>{
         socket.join(room);
@@ -125,7 +144,6 @@ io.on('connection', (socket)=>{
         var chat = replyMessageRecieved.chat;
 
         if(!chat.users) return console.log('chat.users not defined');
-        console.log(chat.users)
         chat.users.forEach((user)=>{
             // if(user._id!=replyMessageRecieved.replies[0].sender) return;
 
@@ -173,29 +191,24 @@ io.on('connection', (socket)=>{
         })
     })
 
-    socket.on('message_delete', (selectedChat, senderId)=>{
-        console.log("message delete", selectedChat, senderId)
+    socket.on('message_delete', (selectedChat, updatedMessages, senderId)=>{
         selectedChat.users.map((u)=>{
             if(u._id==senderId){
                 return
             } 
-            socket.in(u._id).emit('message_deleted', selectedChat)
+            socket.in(u._id).emit('message_deleted', selectedChat, updatedMessages)
         })
     })
 
-    socket.on('message_edit', (selectedChat, senderId)=>{
+    socket.on('message_edit', (selectedChat,updatedMessages, senderId)=>{
         selectedChat.users.map((u)=>{
             if(u._id==senderId){
                 return
             } 
-            socket.in(u._id).emit('message_edited', selectedChat)
+            socket.in(u._id).emit('message_edited', selectedChat,updatedMessages)
         })
     })
 
-    // socket.off("setup", ()=>{
-    //     console.log('user disconnected');
-    //     socket.leave(userData._id)
-    // })
     socket.on('disconnect', () => {
         // Find the disconnected user in onlineUsers
         const disconnectedUserIndex = onlineUsers.findIndex(user => user.socketId === socket.id);
@@ -206,9 +219,6 @@ io.on('connection', (socket)=>{
     
             // Emit userStatus to all clients
             io.emit('userStatus', onlineUsers);
-    
-            // Remove the disconnected user from onlineUsers (optional)
-            // onlineUsers.splice(disconnectedUserIndex, 1);
         }    
         console.log("Disconnected event occurred.");
     });
