@@ -4,6 +4,7 @@ import SideDrawer from '../components/misc/SideDrawer';
 import MyChats from '../components/misc/MyChats';
 import ChatBox from '../components/misc/ChatBox';
 import { Flex } from '@chakra-ui/react'
+
 const ChatPage = () => {
     const { user } = ChatState();
      const [fetchAgain, setFetchAgain] = useState(false)

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ScrollableFeed from 'react-scrollable-feed';
 import { isLastMessage, isSameSender, isSameSenderMargin, isSameUser, getSenderFull } from '../config/ChatLogic';
 import { ChatState } from '../Context/ChatProvider';
-import { Avatar, Tooltip, Menu, MenuButton, MenuList, MenuItem, useToast } from '@chakra-ui/react';
+import { Avatar, Tooltip, Menu, MenuButton, MenuList, MenuItem } from '@chakra-ui/react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import ProfileModal from './misc/ProfileModel';
 import CloseIcon from '@mui/icons-material/Close';

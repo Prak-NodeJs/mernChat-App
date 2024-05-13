@@ -31,9 +31,15 @@ const removeUser = {
   })
 }
 
+const deleteChat = {
+  params:Joi.object().keys({
+    chatId:Joi.string().required().custom(objectId)
+  })
+}
+
 const addUser = removeUser;
 
 
 module.exports={
-    createChat, createGroup,renameGroup, removeUser, addUser
+    createChat, createGroup,renameGroup, removeUser, addUser, deleteChat
 }

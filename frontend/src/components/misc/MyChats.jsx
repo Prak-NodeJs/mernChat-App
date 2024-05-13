@@ -8,6 +8,9 @@ import axios from 'axios';
 import { getSender } from '../../config/ChatLogic';
 import ChatLoading from './ChatLoading';
 import GroupChatMadel from './GroupChatMadel';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { Menu, MenuButton, MenuList, MenuItem } from '@chakra-ui/react';
+
 const MyChats = ({fetchAgain }) => {
   const [loggedUser, setLoggedUser] = useState();
   const { user,selectedChat, setSelectedChat, chats, setChats} =ChatState();
@@ -36,6 +39,36 @@ const MyChats = ({fetchAgain }) => {
       
     }
   };
+
+  const handleChatDelete = async(chatId)=>{
+    toast({
+      title: "This feature is yet to be implemented",
+      status: "success",
+      duration: 5000,
+      isClosable: true,
+      position: "bottom",
+    });
+    
+    // try {
+    //   const config = {
+    //     headers: {
+    //       Authorization: `Bearer ${user.token}`,
+    //     },
+    //   };
+    //   const { data } = await axios.delete(`${import.meta.env.VITE_BASE_URL}/api/chat/${chatId}`, config);
+    //   setChats(data.data);
+    //   // setSelectedChat()
+    // } catch (error) {
+    //   toast({
+    //     title: "Error Occured!",
+    //     description:error.response.data.message,
+    //     status: "error",
+    //     duration: 5000,
+    //     isClosable: true,
+    //     position: "bottom-left",
+    //   });
+    // }
+  }
 
   useEffect(() => {
     setLoggedUser(JSON.parse(localStorage.getItem("userInfo")));
@@ -89,6 +122,7 @@ const MyChats = ({fetchAgain }) => {
           {
             chats.map((chat)=>(
               <Flex
+              justifyContent={'space-between'}
               onClick={()=>setSelectedChat(chat)}
               cursor={"pointer"}
               bg={selectedChat===chat? "#38B2AC" :"#E8E8E8"}
@@ -103,6 +137,17 @@ const MyChats = ({fetchAgain }) => {
                     ? getSender(loggedUser, chat.users)
                     : chat.chatName}
                 </Text>
+
+                <Menu>
+                                <MenuButton as={MoreVertIcon} size="md" cursor="pointer" />
+                                <MenuList>
+                                    
+                                      <MenuItem style={{color:'black'}} onClick={()=>handleChatDelete(chat._id)}>Delete</MenuItem>
+                                 
+                                    
+                                    
+                                </MenuList>
+                            </Menu>
               </Flex>
             ))
           }

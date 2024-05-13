@@ -78,7 +78,6 @@ const fetchChats =async (req, res, next) => {
   }
 }
 
-
 const createGroupChat =async (req, res, next) => {
   try {
     const {users, chatName} = req.body;
@@ -121,8 +120,6 @@ const createGroupChat =async (req, res, next) => {
   }
 }
 
-
-
 const renameGroupChat = async (req, res, next) => {
   try {
     const { chatId, chatName } = req.body;
@@ -146,8 +143,6 @@ const renameGroupChat = async (req, res, next) => {
    next(error)
   }
 }
-
-
 
 const addToGroup = async (req, res, next) => {
   try {
@@ -193,7 +188,6 @@ const addToGroup = async (req, res, next) => {
   }
 }
 
-
 const removefromgroup =async (req, res, next) => {
   try {
     const { chatId, userId } = req.body;
@@ -229,10 +223,39 @@ const removefromgroup =async (req, res, next) => {
   }
 }
 
+const deleteChatForUser  = async (req, res, next)=>{
+  try {
+    const userId = req.user._id
+    const chat = await Chat.findOne({_id:req.params.chatId})
+
+    if(!chat){
+      throw new ApiError(404, 'Chat not found')
+    }
+    
+    await Chat.updateOne(
+      { _id: req.params.chatId },
+      { $pull: { users: userId }
+     }
+    );
+
+    const result = await Chat.find({ users: { $elemMatch: { $eq: req.user._id } } }).populate("users", "-password")
+    .populate("groupAdmin", "-password")
+    .populate("latestMessage").sort({ updatedAt: -1 })
+  res.status(200).json({
+    success:true,
+    message:"chat deleted and rest of the chat retrived",
+    data:result
+  })
+    
+  } catch (error) {
+    next(error)
+  }
+}
 module.exports = {
   accessChat, fetchChats,
   createGroupChat,
   renameGroupChat,
   addToGroup,
-  removefromgroup
+  removefromgroup,
+  deleteChatForUser
 }
