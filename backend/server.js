@@ -163,7 +163,7 @@ io.on('connection', (socket)=>{
 
     socket.on('user_removed', (usersFromRemove,selectedChat, user)=>{
         usersFromRemove.map((u)=>{
-                        socket.in(u._id).emit('removed_user', selectedChat, user)
+            socket.in(u._id).emit('removed_user', selectedChat, user)
         })
     })
 

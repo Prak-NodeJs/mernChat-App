@@ -22,10 +22,8 @@ import UserBadgeItem from '../User/UserBadgeItem'
 import axios from 'axios'
 import UserListItem from '../User/UserListItem'
 import { Spinner } from '@chakra-ui/spinner'
-import io from 'socket.io-client';
 import { getSocket } from '../../config/socket.service'
 
-// const ENDPOINT = `${import.meta.env.VITE_BASE_URL}`; 
  var socket;
 
 const UpdateGroupChatModal = ({fetchMessages, fetchAgain, setFetchAgain}) => {
@@ -86,8 +84,7 @@ const handleDelete= async (user1)=>{
         chatId:selectedChat._id
     }
 
-     await axios.post(`${import.meta.env.VITE_BASE_URL}/api/message`, messageData, config)
-
+      await axios.post(`${import.meta.env.VITE_BASE_URL}/api/message`, messageData, config)
       setSelectedChat()
       setFetchAgain(!fetchAgain);
       fetchMessages()
@@ -107,7 +104,7 @@ const handleDelete= async (user1)=>{
 }
 
     const handleRemove = async (user1)=>{
-        if (selectedChat.groupAdmin._id !== user._id && user1._id !== user._id) {
+        if (selectedChat.groupAdmin._id !== user._id ) {
             toast({
               title: "Only admins can remove someone!",
               status: "error",
@@ -138,9 +135,7 @@ const handleDelete= async (user1)=>{
               userRemoved:user1._id,
               chatId:selectedChat._id
           }
-
-           await axios.post(`${import.meta.env.VITE_BASE_URL}/api/message`, messageData, config)
-
+            await axios.post(`${import.meta.env.VITE_BASE_URL}/api/message`, messageData, config)
             setFetchAgain(!fetchAgain);
             fetchMessages()
             socket.emit('user_removed',selectedChat.users, data.data ,user1)

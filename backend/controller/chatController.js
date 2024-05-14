@@ -31,8 +31,13 @@ const accessChat = async (req, res, next) => {
       path: "latestMessage.sender",
       select: "name pic email",
     });
+    
 
+
+     
     if (isChat.length > 0) {
+      isChat[0].userDeletedChat=[]
+      await isChat[0].save()
       return res.status(200).json({
         success: true,
         message: "chat retrived",
@@ -62,10 +67,12 @@ const accessChat = async (req, res, next) => {
   }
 }
 
-
 const fetchChats =async (req, res, next) => {
   try {
-    const result = await Chat.find({ users: { $elemMatch: { $eq: req.user._id } } }).populate("users", "-password")
+    const result = await Chat.find({
+       users: { $elemMatch: { $eq: req.user._id } },
+       userDeletedChat: { $nin: [req.user._id] } 
+      }).populate("users", "-password")
       .populate("groupAdmin", "-password")
       .populate("latestMessage").sort({ updatedAt: -1 })
     res.status(200).json({
@@ -202,6 +209,15 @@ const removefromgroup =async (req, res, next) => {
     if(!findUser){
       throw new ApiError(404, 'User not found')
     }
+    
+    if(chat.users.length==2){
+      await Chat.findByIdAndDelete(chatId)
+      return res.status(200).json({
+        success:true,
+        message:"group deleted",
+        data:[]
+      })
+    }
 
     const removed = await Chat.findByIdAndUpdate(chatId, {
       $pull: { users: userId }
@@ -210,9 +226,6 @@ const removefromgroup =async (req, res, next) => {
     }).populate("users", "-password")
       .populate("groupAdmin", "-password")
 
-    if (!removed) {
-      throw new ApiError(404,'chat not found')
-    }
     res.status(200).json({
       success:true,
       message:"removed from group",
@@ -232,15 +245,21 @@ const deleteChatForUser  = async (req, res, next)=>{
       throw new ApiError(404, 'Chat not found')
     }
     
-    await Chat.updateOne(
-      { _id: req.params.chatId },
-      { $pull: { users: userId }
-     }
-    );
+    chat.userDeletedChat.push(userId)
 
-    const result = await Chat.find({ users: { $elemMatch: { $eq: req.user._id } } }).populate("users", "-password")
-    .populate("groupAdmin", "-password")
-    .populate("latestMessage").sort({ updatedAt: -1 })
+    await chat.save()
+
+    // const result = await Chat.find({ users: { $elemMatch: { $eq: userId } } }).populate("users", "-password")
+    // .populate("groupAdmin", "-password")
+    // .populate("latestMessage").sort({ updatedAt: -1 })
+    const result = await Chat.find({
+      users: { $elemMatch: { $eq: userId } },
+      userDeletedChat: { $nin: [userId] } 
+  }).populate("users", "-password")
+  .populate("groupAdmin", "-password")
+  .populate("latestMessage")
+  .sort({ updatedAt: -1 });
+  
   res.status(200).json({
     success:true,
     message:"chat deleted and rest of the chat retrived",
@@ -251,6 +270,7 @@ const deleteChatForUser  = async (req, res, next)=>{
     next(error)
   }
 }
+
 module.exports = {
   accessChat, fetchChats,
   createGroupChat,

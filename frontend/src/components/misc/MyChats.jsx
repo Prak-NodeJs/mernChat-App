@@ -41,33 +41,25 @@ const MyChats = ({fetchAgain }) => {
   };
 
   const handleChatDelete = async(chatId)=>{
-    toast({
-      title: "This feature is yet to be implemented",
-      status: "success",
-      duration: 5000,
-      isClosable: true,
-      position: "bottom",
-    });
-    
-    // try {
-    //   const config = {
-    //     headers: {
-    //       Authorization: `Bearer ${user.token}`,
-    //     },
-    //   };
-    //   const { data } = await axios.delete(`${import.meta.env.VITE_BASE_URL}/api/chat/${chatId}`, config);
-    //   setChats(data.data);
-    //   // setSelectedChat()
-    // } catch (error) {
-    //   toast({
-    //     title: "Error Occured!",
-    //     description:error.response.data.message,
-    //     status: "error",
-    //     duration: 5000,
-    //     isClosable: true,
-    //     position: "bottom-left",
-    //   });
-    // }
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+      const { data } = await axios.delete(`${import.meta.env.VITE_BASE_URL}/api/chat/${chatId}`, config);
+      setChats(data.data);
+      setSelectedChat()
+    } catch (error) {
+      toast({
+        title: "Error Occured!",
+        description:error.response.data.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom-left",
+      });
+    }
   }
 
   useEffect(() => {

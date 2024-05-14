@@ -19,6 +19,10 @@ const sendMessage = async (req, res, next) => {
     if (!isChatExist) {
       throw new ApiError(404, "Chat not found");
     }
+
+   isChatExist.userDeletedChat=[]
+   await isChatExist.save()
+
     var newMessage = {
       sender: req.user._id,
       content: content,
@@ -31,7 +35,7 @@ const sendMessage = async (req, res, next) => {
 
     if (groupUsers) {
       if (
-        isChatExist.isGroupChat &&
+        !isChatExist.isGroupChat &&
         isChatExist.groupAdmin.toString() != req.user._id.toString()
       ) {
         throw new ApiError(400, "Only group admin can send groupUsers key");
@@ -41,7 +45,7 @@ const sendMessage = async (req, res, next) => {
 
     if (userAdded) {
       if (
-        isChatExist.isGroupChat &&
+        !isChatExist.isGroupChat &&
         isChatExist.groupAdmin.toString() != req.user._id.toString()
       ) {
         throw new ApiError(400, "Only group admin can send userAdded key");
@@ -51,7 +55,7 @@ const sendMessage = async (req, res, next) => {
 
     if (userRemoved) {
       if (
-        isChatExist.isGroupChat &&
+        !isChatExist.isGroupChat &&
         isChatExist.groupAdmin.toString() != req.user._id.toString()
       ) {
         throw new ApiError(400, "Only group admin can send userRemoved key");
@@ -61,7 +65,7 @@ const sendMessage = async (req, res, next) => {
     }
 
     if (userLeft) {
-      if (isChatExist.isGroupChat) {
+      if (!isChatExist.isGroupChat) {
         throw new ApiError(400, "This key allowed in group chat");
       }
       (newMessage.userLeft = userLeft), (newMessage.userLeftFromGroup = true);

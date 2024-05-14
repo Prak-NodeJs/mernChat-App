@@ -100,14 +100,14 @@ const ScrollableChat = ({ messages, setReplying, setHideSend, deleteMessage, set
                         : ( m.userRemovedFromGrp ? 
                             <div style={{ display: "flex", justifyContent: "center" }}>
                             <p style={{ textAlign: "center", backgroundColor: "#f0f0f0", padding: "10px" }}>
-                                {user._id == m.chat.groupAdmin._id ? `you removed ${m.userRemoved.name}` : ''}
-                                {user._id != m.userRemoved._id && user._id != m.chat.groupAdmin._id ? `${m.chat.groupAdmin.name} removed ${m.userRemoved.name}` : ''}
+                                {user._id == m.chat.groupAdmin._id? `you removed ${m.userRemoved.name}` : ''}
+                                {user._id != m.chat.groupAdmin._id ? `${m.chat.groupAdmin.name} removed ${m.userRemoved.name}` : ''}
                             </p>
                         </div>
                         :(m. userLeftFromGroup?
                             <div style={{ display: "flex", justifyContent: "center" }}>
                             <p style={{ textAlign: "center", backgroundColor: "#f0f0f0", padding: "10px" }}>
-                                {user._id != m.userLeft_id? `${m.userLeft.name} left the group` : ''}
+                                {user._id != m.userLeft._id? `${m.userLeft.name} left the group` : ''}
                             </p>
                         </div>
                         :
