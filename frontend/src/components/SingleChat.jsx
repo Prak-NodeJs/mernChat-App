@@ -43,13 +43,13 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
     let isViewed = true;
 
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') {
-    isViewed = false;
-  } else {
-    isViewed = true;
-  }
-});
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+            isViewed = false;
+        } else {
+            isViewed = true;
+        }
+    });
     const toast = useToast()
 
     const emojiConfig =
@@ -116,7 +116,7 @@ document.addEventListener('visibilitychange', () => {
             await axios.delete(`${import.meta.env.VITE_BASE_URL}/api/message/${m._id}`, config)
             const updatedMessages = messages.filter((msg) => msg._id !== m._id);
 
-             setMessages(updatedMessages)
+            setMessages(updatedMessages)
             socket.emit('message_delete', selectedChat, updatedMessages, m.sender._id)
         } catch (error) {
             toast({
@@ -150,7 +150,7 @@ document.addEventListener('visibilitychange', () => {
                         Authorization: `Bearer ${user.token}`
                     }
                 }
-               const {data}= await axios.put(`${import.meta.env.VITE_BASE_URL}/api/message/${editing._id}`, {
+                const { data } = await axios.put(`${import.meta.env.VITE_BASE_URL}/api/message/${editing._id}`, {
                     content: newMessage
                 }, config)
 
@@ -172,8 +172,8 @@ document.addEventListener('visibilitychange', () => {
                 isClosable: true,
                 position: "bottom",
             });
-        
-        }         
+
+        }
 
     }
 
@@ -251,7 +251,7 @@ document.addEventListener('visibilitychange', () => {
                 }
 
                 socket.emit('reply message', data.data)
-            
+
                 setFile('')
                 setSelectedFileName('')
                 setHideSend(false)
@@ -305,62 +305,62 @@ document.addEventListener('visibilitychange', () => {
 
     }, [])
 
-        useEffect(() => {
+    useEffect(() => {
         fetchMessages();
 
         selectedChatCompare = selectedChat;
     }, [selectedChat])
 
     useEffect(() => {
-        socket.on('message recieved', (newMessageRecieved) => { 
-            if(!isViewed){
+        socket.on('message recieved', (newMessageRecieved) => {
+            if (!isViewed) {
                 const rnotification = new Notification(`New Message from ${getSender(user, newMessageRecieved.chat.users)}`, {
                     body: `${newMessageRecieved.content}`,
                 });
-            
+
                 // Handle notification click
                 rnotification.onclick = () => {
-                   
-                    window.focus(); 
+
+                    window.focus();
                     setFetchAgain(!fetchAgain)
                     setSelectedChat(newMessageRecieved.chat)
                     rnotification.close()
                 };
-            
+
             }
             else if (!selectedChatCompare ||
-                    selectedChatCompare._id !== newMessageRecieved.chat._id) {
+                selectedChatCompare._id !== newMessageRecieved.chat._id) {
                 //give notification
                 if (!notification.includes(newMessageRecieved)) {
-                            setNotification([newMessageRecieved, ...notification])
-                            setFetchAgain(!fetchAgain)
-                    }
+                    setNotification([newMessageRecieved, ...notification])
+                    setFetchAgain(!fetchAgain)
+                }
 
-              } else {
+            } else {
                 setMessages([...messages, newMessageRecieved])
-              
-}
+
+            }
         })
 
         socket.on('reply message recieved', (replyMessageRecieved) => {
-         if(!isViewed){
-            if(!isViewed){
-                const rnotification = new Notification(`New Message from ${getSender(user, replyMessageRecieved.chat.users)}`, {
-                    body: `${replyMessageRecieved.content}`,
-                });
-            
-                // Handle notification click
-                rnotification.onclick = () => {
-                   
-                    window.focus(); 
-                    setFetchAgain(!fetchAgain)
-                    setSelectedChat(replyMessageRecieved.chat)
-                    rnotification.close()
-                };
-            
+            if (!isViewed) {
+                if (!isViewed) {
+                    const rnotification = new Notification(`New Message from ${getSender(user, replyMessageRecieved.chat.users)}`, {
+                        body: `${replyMessageRecieved.content}`,
+                    });
+
+                    // Handle notification click
+                    rnotification.onclick = () => {
+
+                        window.focus();
+                        setFetchAgain(!fetchAgain)
+                        setSelectedChat(replyMessageRecieved.chat)
+                        rnotification.close()
+                    };
+
+                }
             }
-         }
-        else if (!selectedChatCompare ||
+            else if (!selectedChatCompare ||
                 selectedChatCompare._id !== replyMessageRecieved.chat._id) {
                 if (!notification.includes(replyMessageRecieved)) {
                     setNotification([replyMessageRecieved, ...notification])
@@ -389,7 +389,8 @@ document.addEventListener('visibilitychange', () => {
                 selectedChatCompare._id !== selectedChat1._id) {
                 setFetchAgain(!fetchAgain)
             } else {
-                setSelectedChat(selectedChat)
+                setFetchAgain(!fetchAgain)
+                setSelectedChat(selectedChat1)
             }
         })
 
@@ -419,7 +420,7 @@ document.addEventListener('visibilitychange', () => {
             setFetchAgain(!fetchAgain)
         })
 
-        socket.on('message_deleted', (selectedChat,updatedMessages) => {
+        socket.on('message_deleted', (selectedChat, updatedMessages) => {
             if (!selectedChatCompare ||
                 selectedChatCompare._id !== selectedChat._id) {
             } else {
@@ -428,10 +429,8 @@ document.addEventListener('visibilitychange', () => {
         })
 
         socket.on('message_edited', (selectedChat, updatedMessages) => {
-
             if (!selectedChatCompare ||
                 selectedChatCompare._id !== selectedChat._id) {
-
             } else {
                 setMessages(updatedMessages)
             }
@@ -494,6 +493,16 @@ document.addEventListener('visibilitychange', () => {
             });
     };
 
+    const getUserStatus = (user, users) => {
+        const senderId = getSenderFull(user, users)._id;
+        const onlineUser = onlineUsers.find(user => user.userId === senderId);
+        if(onlineUser?.status){
+            return 'online'
+        }else{
+            return 'offline'
+        }
+    }
+
     const typingHanlder = (e) => {
         setNewMessage(e.target.value);
         if (!socketConnected) return;
@@ -529,30 +538,18 @@ document.addEventListener('visibilitychange', () => {
                 >
                     <IconButton d="flex" md="none" icon={<ArrowBackIcon />} onClick={() => setSelectedChat('')}>
                     </IconButton>
-                  
+
                     {!selectedChat.isGroupChat ? (
-                       <>
-                            <div>
+                        <>
+                            <div style={{display:"flex", flexDirection:"column", alignItems:"center"}}>
 
-                            {_.capitalize(getSender(user, selectedChat.users))}
-
-                            {onlineUsers
-                                .filter((user1, index, self) =>
-                                    index === self.findIndex((u) => u.userId === user1.userId)
-                                )
-                                .map((user1) => (
-                                    <p key={user1.userId}>
-                                        {user._id !== user1.userId && (
-                                            <span style={{fontSize:"15px"}}>{user1.status ? 'Online' : 'Offline'}</span>
-                                        )}
-                                    </p>
-                                ))
-                            }
+                                {_.capitalize(getSender(user, selectedChat.users))}
+                               <span  style={{fontSize:"15px"}}>{getUserStatus(user, selectedChat.users)}</span> 
                             </div>
 
                             <ProfileModal user={getSenderFull(user, selectedChat.users)} />
-</>
-                      
+                        </>
+
                     ) : (
                         <>
                             {_.capitalize(selectedChat.chatName)}

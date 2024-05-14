@@ -244,6 +244,17 @@ const handleDelete= async (user1)=>{
               },
               config
             );
+
+
+            const messageData = {
+              content:"grp content",
+              userAdded:user1._id,
+              chatId:selectedChat._id
+          }
+
+           await axios.post(`${import.meta.env.VITE_BASE_URL}/api/message`, messageData, config)
+
+
             setSelectedChat(data.data);
             setFetchAgain(!fetchAgain);
             socket.emit('user_added', data.data, user)

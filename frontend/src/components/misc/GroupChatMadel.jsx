@@ -114,8 +114,8 @@ const GroupChatMadel = ({ children }) => {
                 }, config);
                 
                 const messageData = {
-                    content:"grp content",
-                    grpAddEvent:true,
+                    content:"users added to group",
+                    groupUsers:selectedUsers.map((u) => u._id),
                     chatId:data.data._id
                 }
 
