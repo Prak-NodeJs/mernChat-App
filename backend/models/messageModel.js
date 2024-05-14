@@ -30,10 +30,10 @@ const messageSchema = mongoose.Schema(
         const formattedTime = `${formattedHours.toString().padStart(2, '0')}:${minutes
           .toString()
           .padStart(2, '0')} ${meridiem}`;
-
         return formattedTime;
       },
-    },    chat: { type: mongoose.Schema.Types.ObjectId, ref: "Chat" },
+    },
+    chat: { type: mongoose.Schema.Types.ObjectId, ref: "Chat" },
     readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
