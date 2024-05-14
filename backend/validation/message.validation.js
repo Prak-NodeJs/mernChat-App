@@ -8,7 +8,9 @@ const createMessage = {
         chatId: Joi.string().required().custom(objectId),
        file:Joi.string(),
        groupUsers:Joi.array(),
-       userAdded:Joi.string().custom(objectId)
+       userAdded:Joi.string().custom(objectId),
+       userRemoved:Joi.string().custom(objectId),
+       userLeft:Joi.string().custom(objectId)
       }) 
   };
 

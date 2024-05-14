@@ -13,7 +13,6 @@ import _ from 'lodash'
 const ScrollableChat = ({ messages, setReplying, setHideSend, deleteMessage, setEditeding, setNewMessage }) => {
     const { user, selectedChat } = ChatState();
     const [showReplies, setShowReplies] = useState({});
-    const [displayAddedMessageAgain, setDisplayAddedMessageAgain] = useState(true);
     const handleReply = (m) => {
         setReplying(m);
         setHideSend(true);
@@ -88,14 +87,30 @@ const ScrollableChat = ({ messages, setReplying, setHideSend, deleteMessage, set
                                 }
                             </p>
                         </div>
-                    ) : (m.userAddedToGrp ?    
-                     <div style={{ display: "flex", justifyContent: "center" }}>
-                    <p style={{ textAlign: "center", backgroundColor: "#f0f0f0", padding: "10px" }}>
-                        {user._id==m.userAdded._id?`you were added by ${m.chat.groupAdmin.name}`:''}
-                        {user._id==m.chat.groupAdmin._id?`you added ${m.userAdded.name}`:''}
-                        {user._id!=m.userAdded._id && user._id!=m.chat.groupAdmin._id?`${m.chat.groupAdmin.name} added ${m.userAdded.name}`:''} 
-                    </p>
-                </div>
+                    ) :
+                     (
+                        m.userAddedToGrp ?
+                        <div style={{ display: "flex", justifyContent: "center" }}>
+                            <p style={{ textAlign: "center", backgroundColor: "#f0f0f0", padding: "10px" }}>
+                                {user._id == m.userAdded._id ? `you were added by ${m.chat.groupAdmin.name}` : ''}
+                                {user._id == m.chat.groupAdmin._id ? `you added ${m.userAdded.name}` : ''}
+                                {user._id != m.userAdded._id && user._id != m.chat.groupAdmin._id ? `${m.chat.groupAdmin.name} added ${m.userAdded.name}` : ''}
+                            </p>
+                        </div>
+                        : ( m.userRemovedFromGrp ? 
+                            <div style={{ display: "flex", justifyContent: "center" }}>
+                            <p style={{ textAlign: "center", backgroundColor: "#f0f0f0", padding: "10px" }}>
+                                {user._id == m.chat.groupAdmin._id ? `you removed ${m.userRemoved.name}` : ''}
+                                {user._id != m.userRemoved._id && user._id != m.chat.groupAdmin._id ? `${m.chat.groupAdmin.name} removed ${m.userRemoved.name}` : ''}
+                            </p>
+                        </div>
+                        :(m. userLeftFromGroup?
+                            <div style={{ display: "flex", justifyContent: "center" }}>
+                            <p style={{ textAlign: "center", backgroundColor: "#f0f0f0", padding: "10px" }}>
+                                {/* {user._id == m.chat.groupAdmin._id ? `you removed ${m.userRemoved.name}` : ''} */}
+                                {user._id != m.userLeft_id? `${m.userLeft.name} left the group` : ''}
+                            </p>
+                        </div>
                         :
                         <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }} key={m._id}>
                             {(isSameSender(messages, m, i, user._id) || isLastMessage(messages, i, user._id)) && (
@@ -242,7 +257,7 @@ const ScrollableChat = ({ messages, setReplying, setHideSend, deleteMessage, set
                                 ))}
                             </div>
                         </div>
-                    )}
+                    )))}
                 </div>
             ))}
         </ScrollableFeed>

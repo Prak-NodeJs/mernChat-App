@@ -79,6 +79,15 @@ const handleDelete= async (user1)=>{
         },
         config
       );
+
+      const messageData = {
+        content:"user left from group",
+        userLeft:user1._id,
+        chatId:selectedChat._id
+    }
+
+     await axios.post(`${import.meta.env.VITE_BASE_URL}/api/message`, messageData, config)
+
       setSelectedChat()
       setFetchAgain(!fetchAgain);
       fetchMessages()
@@ -124,6 +133,14 @@ const handleDelete= async (user1)=>{
               config
             );
             user._id==user1._id?setSelectedChat():setSelectedChat(data.data);
+            const messageData = {
+              content:"user removed from group",
+              userRemoved:user1._id,
+              chatId:selectedChat._id
+          }
+
+           await axios.post(`${import.meta.env.VITE_BASE_URL}/api/message`, messageData, config)
+
             setFetchAgain(!fetchAgain);
             fetchMessages()
             socket.emit('user_removed',selectedChat.users, data.data ,user1)
@@ -204,7 +221,6 @@ const handleDelete= async (user1)=>{
             }
     }
 
- 
     const handleAddUser = async (user1)=>{
         if (selectedChat.users.find((u) => u._id === user1._id)) {
             toast({
@@ -274,7 +290,6 @@ const handleDelete= async (user1)=>{
             setSearch('');
           }
     }
-
     return (
       <>
         <IconButton d={{ base: 'flex' }} icon={<ViewIcon />} onClick={onOpen} />

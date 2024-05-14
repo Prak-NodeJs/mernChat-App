@@ -9,9 +9,13 @@ const messageSchema = mongoose.Schema(
     grpAddEvent:{type:Boolean, default:false},
     groupUsers:[{type: mongoose.Schema.Types.ObjectId, ref: "User"}],
     userAddedToGrp:{type:Boolean, default:false},
+    userRemovedFromGrp:{type:Boolean, default:false},
+    userRemoved:{type: mongoose.Schema.Types.ObjectId, ref: "User"},
     userAdded:{type: mongoose.Schema.Types.ObjectId, ref: "User"},
     userRemovedFromGrp:{type:Boolean, default:false},
     userRemoved:{type: mongoose.Schema.Types.ObjectId, ref: "User"},
+    userLeftFromGroup:{type:Boolean, default:false},
+    userLeft:{type: mongoose.Schema.Types.ObjectId, ref: "User"},
     replies: [{ type: mongoose.Schema.Types.ObjectId, ref: "Reply" }],
     time: {
       type: String,
